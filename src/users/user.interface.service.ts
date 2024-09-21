@@ -1,3 +1,3 @@
 export interface IUserService {
-  createUser();
+  createUser(): Promise<void>;
 }

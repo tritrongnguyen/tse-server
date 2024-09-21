@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IAuthService } from './auth.interface.service';
 import { RegisterUserDTO } from './dtos/register-user.dto';
-import { Services } from 'utils/type';
 import { IUserService } from 'src/users/user.interface.service';
+import { Services } from 'utils/constants';
 
 @Injectable()
 export class AuthService implements IAuthService {
