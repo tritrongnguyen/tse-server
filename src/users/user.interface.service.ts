@@ -1,3 +1,4 @@
+import { User } from './entities/user.entity';
 export interface IUserService {
-  createUser(): Promise<void>;
+  createUser(user: User): Promise<User>;
 }

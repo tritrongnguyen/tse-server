@@ -19,6 +19,7 @@ import { userEntities } from './entities';
       provide: Services.USER,
       useClass: UserService,
     },
+    TypeOrmModule,
   ],
 })
 export class UsersModule {}

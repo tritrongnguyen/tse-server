@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const { PORT } = process.env;
   app.setGlobalPrefix('/api/v1');
-  // app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalPipes(new ValidationPipe());
   const config = new DocumentBuilder()
     .setTitle('TSE API')
     .setDescription('TSE API Documentation')

@@ -4,6 +4,7 @@ import { UserStatus } from './enums/user-status.enum';
 import { LoginStatus } from './enums/login-status.enum';
 import { UserType } from './enums/user-type.enum';
 import { Faculty } from './enums/faculty.enum';
+import { Exclude } from 'class-transformer';
 
 @Entity({
   name: 'users',
@@ -18,6 +19,9 @@ export class User {
   @Column('text', {
     nullable: false,
     name: 'hashed_password',
+  })
+  @Exclude({
+    toPlainOnly: true,
   })
   hashedPassword: string;
 
