@@ -1,21 +1,27 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { PermissionStatus } from './enums/permission-status.enum';
-import { PermissionRole } from './permission-role.entity';
+import { GrantPermission } from './grant-permission';
 
 @Entity({
   name: 'permissions',
 })
 export class Permission {
-  @PrimaryGeneratedColumn('identity', {
-    name: 'id',
-    type: 'bigint',
+  @PrimaryColumn('varchar', {
+    name: 'permission_id',
+    length: 50,
   })
-  permissionId: number;
+  permissionId: string;
 
   @Column('varchar', {
     nullable: false,
     name: 'permission_name',
-    length: 40,
+    length: 50,
   })
   permissionName: string;
 
@@ -27,14 +33,15 @@ export class Permission {
   })
   status: PermissionStatus;
 
-  @Column('text', {
+  @Column('varchar', {
     nullable: true,
+    length: 100,
   })
   description: string;
 
   @OneToMany(
-    () => PermissionRole,
-    (permissionRole) => permissionRole.permission,
+    () => GrantPermission,
+    (grantPermission) => grantPermission.permission,
   )
-  permissionRoles: PermissionRole[];
+  grantPermissions: GrantPermission[];
 }

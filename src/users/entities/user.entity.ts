@@ -1,49 +1,47 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { UserRole } from './user-role.entity';
-import { UserStatus } from './enums/user-status.enum';
-import { LoginStatus } from './enums/login-status.enum';
+import { GrantAccess } from '../../auth/entities/grant-access';
+import { UserStatus } from '../../auth/entities/enums/user-status.enum';
+import { LoginStatus } from '../../auth/entities/enums/login-status.enum';
 import { UserType } from './enums/user-type.enum';
 import { Faculty } from './enums/faculty.enum';
 import { Exclude } from 'class-transformer';
+import { LoginLog } from '../../auth/entities/login-log';
 
 @Entity({
   name: 'users',
 })
 export class User {
   @PrimaryColumn({
-    type: 'bigint',
-    name: 'id',
+    type: 'varchar',
+    name: 'user_id',
+    length: 10,
   })
-  userId: number;
+  public userId: string;
 
-  @Column('text', {
+  @Column('varchar', {
     nullable: false,
     name: 'hashed_password',
+    length: 100,
   })
-  @Exclude({
-    toPlainOnly: true,
-  })
-  hashedPassword: string;
+  @Exclude()
+  public hashedPassword: string;
 
   @Column('timestamp', {
     name: 'register_date',
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
   })
-  registerDate: Date;
-
-  @Column('timestamp', {
-    name: 'latest_login_time',
-    nullable: true,
+  @Exclude({
+    toPlainOnly: true,
   })
-  latestLogin: Date;
+  public registerDate: Date;
 
   @Column('varchar', {
     length: 100,
     nullable: false,
     unique: true,
   })
-  email: string;
+  public email: string;
 
   @Column('varchar', {
     length: 11,
@@ -51,21 +49,21 @@ export class User {
     unique: true,
     nullable: true,
   })
-  phoneNumber: string;
+  public phoneNumber: string;
 
   @Column('nvarchar', {
     name: 'first_name',
     length: 40,
     nullable: false,
   })
-  firstName: string;
+  public firstName: string;
 
   @Column('nvarchar', {
     name: 'last_name',
     length: 40,
     nullable: false,
   })
-  lastName: string;
+  public lastName: string;
 
   @Column('enum', {
     enum: UserType,
@@ -74,7 +72,10 @@ export class User {
     nullable: false,
     default: UserType.STUDENT,
   })
-  userType: UserType;
+  @Exclude({
+    toPlainOnly: true,
+  })
+  public userType: UserType;
 
   @Column('enum', {
     enum: Faculty,
@@ -82,21 +83,21 @@ export class User {
     enumName: 'faculties',
     default: Faculty.OTHER,
   })
-  faculty: Faculty;
+  public faculty: Faculty;
 
   @Column('nvarchar', {
     length: 20,
     name: 'class_name',
     nullable: true,
   })
-  className: string;
+  public className: string;
 
   @Column('int', {
     name: 'cumulative_score',
     nullable: false,
     default: 0,
   })
-  cumulativeScore: number;
+  public cumulativeScore: number;
 
   @Column('enum', {
     enum: UserStatus,
@@ -104,7 +105,10 @@ export class User {
     nullable: false,
     default: UserStatus.ACTIVE,
   })
-  status: UserStatus;
+  @Exclude({
+    toPlainOnly: true,
+  })
+  public status: UserStatus;
 
   @Column('enum', {
     enum: LoginStatus,
@@ -112,8 +116,12 @@ export class User {
     nullable: false,
     default: LoginStatus.OFFLINE,
   })
-  loginStatus: LoginStatus;
+  @Exclude()
+  public loginStatus: LoginStatus;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user)
-  userRoles: UserRole[];
+  @OneToMany(() => GrantAccess, (grantAccess) => grantAccess.user)
+  public grantAccesses: GrantAccess[];
+
+  @OneToMany(() => LoginLog, (log) => log.user)
+  public loginLogs: LoginLog[];
 }

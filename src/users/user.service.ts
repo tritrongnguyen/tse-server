@@ -1,12 +1,9 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { IUserService } from './user.interface.service';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDTO } from './dtos/create-user.dto';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -15,17 +12,33 @@ export class UserService implements IUserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async createUser(user: User): Promise<User> {
-    try {
-      const createdUser = this.userRepository.create(user);
-      await this.userRepository.save(createdUser);
-      return;
-    } catch (error) {
-      if (error.code == '23505') {
-        throw new ConflictException('User with this id already exits');
-      } else {
-        throw new InternalServerErrorException('Some thing went wrong!');
-      }
-    }
+  async createUser(createUserDTO: CreateUserDTO): Promise<User> {
+    const newUser = new User();
+    newUser.userId = createUserDTO.userId;
+    newUser.hashedPassword = createUserDTO.hashedPassword;
+    newUser.firstName = createUserDTO.firstName;
+    newUser.lastName = createUserDTO.lastName;
+    newUser.email = createUserDTO.email;
+    return await this.userRepository.save(newUser);
+  }
+
+  async checkEmailExisted(email: string): Promise<boolean> {
+    return await this.userRepository.exists({
+      where: { email: email },
+    });
+  }
+
+  async checkUserIdExisted(userId: string): Promise<boolean> {
+    return await this.userRepository.exists({
+      where: { userId: userId },
+    });
+  }
+
+  async findUserById(userId: string): Promise<User> {
+    return await this.userRepository.findOne({
+      where: {
+        userId: userId,
+      },
+    });
   }
 }
