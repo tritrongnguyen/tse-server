@@ -4,9 +4,9 @@ import { AuthController } from './auth.controller';
 import { Guards, Services } from 'utils/constants';
 import { UsersModule } from 'src/users/user.module';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthGuard } from './guards/auth.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { authEntities } from './entities';
+import { AuthenticationGuard } from './guards/authentication.guard';
 
 @Module({
   imports: [
@@ -18,8 +18,8 @@ import { authEntities } from './entities';
         signOptions: {
           expiresIn: process.env.JWT_EXPIRATION_TIME,
         },
-        global: true,
       }),
+      global: true,
     }),
   ],
   controllers: [AuthController],
@@ -29,15 +29,19 @@ import { authEntities } from './entities';
       useClass: AuthService,
     },
     {
-      provide: Guards.AUTH,
-      useClass: AuthGuard,
+      provide: Guards.AUTHENTICATION,
+      useClass: AuthenticationGuard,
     },
   ],
-  // exports: [
-  //   {
-  //     provide: Guards.AUTH,
-  //     useClass: AuthGuard,
-  //   },
-  // ],
+  exports: [
+    {
+      provide: Services.AUTH,
+      useClass: AuthService,
+    },
+    {
+      provide: Guards.AUTHENTICATION,
+      useClass: AuthenticationGuard,
+    },
+  ],
 })
 export class AuthModule {}

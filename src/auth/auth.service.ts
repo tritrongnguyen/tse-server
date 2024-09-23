@@ -54,7 +54,9 @@ export class AuthService implements IAuthService {
     return this.userService.createUser(createUserDTO);
   }
 
-  async login(loginDto: LoginDTO): Promise<{ access_token: string }> {
+  async login(
+    loginDto: LoginDTO,
+  ): Promise<{ access_token: string; user: User }> {
     const isUserIdExisted = await this.userService.checkUserIdExisted(
       loginDto.userId,
     );
@@ -71,9 +73,11 @@ export class AuthService implements IAuthService {
 
     if (!matchPassword)
       throw new UnauthorizedException('ID or password is wrong!!!');
+
     const payload = { sub: userFound.userId, username: userFound.email };
     return {
       access_token: await this.jwtService.signAsync(payload),
+      user: userFound,
     };
   }
 

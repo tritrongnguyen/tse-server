@@ -3,22 +3,21 @@ import { User } from '../../users/entities/user.entity';
 import { Role } from './role.entity';
 
 @Entity({
-  name: 'grant_access',
+  name: 'roles_grant',
 })
-export class GrantAccess {
+export class RolesGrant {
   @PrimaryColumn('varchar', {
     length: 10,
     name: 'user_id',
   })
-  @ManyToOne(() => User, (user) => user.grantAccesses)
+  @ManyToOne(() => User, (user) => user.rolesGrant)
   @JoinColumn({ name: 'user_id' })
   public user: User;
 
-  @PrimaryColumn('varchar', {
-    length: 50,
+  @PrimaryColumn('int', {
     name: 'role_id',
   })
-  @ManyToOne(() => Role, (role) => role.grantAccesses)
+  @ManyToOne(() => Role, (role) => role.roleGrants)
   @JoinColumn({ name: 'role_id' })
   public role: Role;
 

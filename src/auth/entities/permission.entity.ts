@@ -6,17 +6,17 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PermissionStatus } from './enums/permission-status.enum';
-import { GrantPermission } from './grant-permission';
+import { AccessesGrant } from './access-grants';
 
 @Entity({
   name: 'permissions',
 })
 export class Permission {
-  @PrimaryColumn('varchar', {
+  @PrimaryGeneratedColumn('identity', {
     name: 'permission_id',
-    length: 50,
+    type: 'int',
   })
-  permissionId: string;
+  permissionId: number;
 
   @Column('varchar', {
     nullable: false,
@@ -34,14 +34,12 @@ export class Permission {
   status: PermissionStatus;
 
   @Column('varchar', {
-    nullable: true,
+    nullable: false,
+    default: 'permission description',
     length: 100,
   })
   description: string;
 
-  @OneToMany(
-    () => GrantPermission,
-    (grantPermission) => grantPermission.permission,
-  )
-  grantPermissions: GrantPermission[];
+  @OneToMany(() => AccessesGrant, (accessesGrant) => accessesGrant.permission)
+  grantPermissions: AccessesGrant[];
 }

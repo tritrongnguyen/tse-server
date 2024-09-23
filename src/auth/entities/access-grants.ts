@@ -1,18 +1,11 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryColumn,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Permission } from './permission.entity';
 import { Role } from './role.entity';
 
 @Entity({
-  name: 'grant_permissions',
+  name: 'accesses_grant',
 })
-export class GrantPermission {
+export class AccessesGrant {
   @PrimaryColumn('varchar', {
     length: 50,
   })
@@ -25,7 +18,7 @@ export class GrantPermission {
   @PrimaryColumn('varchar', {
     length: 50,
   })
-  @ManyToOne(() => Role, (role) => role.grantPermission)
+  @ManyToOne(() => Role, (role) => role.accessesGrant)
   @JoinColumn({
     name: 'role_id',
   })

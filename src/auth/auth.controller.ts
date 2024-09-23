@@ -16,11 +16,11 @@ import { IAuthService } from './auth.interface.service';
 import { RegisterUserDTO } from './dtos/register-user.dto';
 import { instanceToPlain } from 'class-transformer';
 import { LoginDTO } from './dtos/login-dto';
-import { Public } from 'utils/customs';
-import { AuthGuard } from './guards/auth.guard';
+import { Public } from './customs';
+import { AuthenticationGuard } from './guards/authentication.guard';
 
 @Controller(Routes.AUTH)
-@UseGuards(AuthGuard)
+@UseGuards(AuthenticationGuard)
 export class AuthController {
   constructor(
     @Inject(Services.AUTH) private readonly authService: IAuthService,

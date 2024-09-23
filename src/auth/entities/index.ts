@@ -1,6 +1,6 @@
-import { GrantAccess } from './grant-access';
+import { RolesGrant } from './role-grants';
 import { LoginLog } from './login-log';
-import { GrantPermission } from './grant-permission';
+import { AccessesGrant } from './access-grants';
 import { Permission } from './permission.entity';
 import { Role } from './role.entity';
 
@@ -8,6 +8,6 @@ export const authEntities = [
   Role,
   Permission,
   LoginLog,
-  GrantAccess,
-  GrantPermission,
+  RolesGrant,
+  AccessesGrant,
 ];

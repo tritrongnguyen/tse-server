@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { GrantAccess } from '../../auth/entities/grant-access';
+import { RolesGrant } from '../../auth/entities/role-grants';
 import { UserStatus } from '../../auth/entities/enums/user-status.enum';
 import { LoginStatus } from '../../auth/entities/enums/login-status.enum';
 import { UserType } from './enums/user-type.enum';
@@ -119,8 +119,10 @@ export class User {
   @Exclude()
   public loginStatus: LoginStatus;
 
-  @OneToMany(() => GrantAccess, (grantAccess) => grantAccess.user)
-  public grantAccesses: GrantAccess[];
+  @OneToMany(() => RolesGrant, (rolesGrant) => rolesGrant.user, {
+    eager: true,
+  })
+  public rolesGrant: RolesGrant[];
 
   @OneToMany(() => LoginLog, (log) => log.user)
   public loginLogs: LoginLog[];

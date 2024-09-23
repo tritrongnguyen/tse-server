@@ -1,22 +1,23 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RoleStatus } from './enums/role-status.enum';
-import { GrantAccess } from './grant-access';
-import { GrantPermission } from './grant-permission';
+import { RolesGrant } from './role-grants';
+import { AccessesGrant } from './access-grants';
 
 @Entity({
   name: 'roles',
 })
 export class Role {
-  @PrimaryColumn('varchar', {
-    length: 50,
+  @PrimaryGeneratedColumn('increment', {
     name: 'role_id',
+    type: 'int',
   })
-  public roleId: string;
+  public roleId: number;
 
   @Column('varchar', {
     nullable: false,
     name: 'role_name',
     length: 40,
+    unique: true,
   })
   public roleName: string;
 
@@ -29,14 +30,15 @@ export class Role {
   public status: RoleStatus;
 
   @Column('nvarchar', {
-    nullable: true,
+    nullable: false,
+    default: 'role description',
     length: 250,
   })
   public description: string;
 
-  @OneToMany(() => GrantAccess, (grantAccess) => grantAccess.role)
-  public grantAccesses: GrantAccess[];
+  @OneToMany(() => RolesGrant, (rolesGrant) => rolesGrant.role)
+  public roleGrants: RolesGrant[];
 
-  @OneToMany(() => GrantPermission, (grantPermission) => grantPermission.role)
-  public grantPermission: GrantPermission[];
+  @OneToMany(() => AccessesGrant, (accessGrant) => accessGrant.role)
+  public accessesGrant: AccessesGrant[];
 }
