@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PermissionStatus } from './enums/permission-status.enum';
-import { AccessesGrant } from './access-grants';
+import { AccessGrant } from './access-grant';
 
 @Entity({
   name: 'permissions',
@@ -40,6 +40,6 @@ export class Permission {
   })
   description: string;
 
-  @OneToMany(() => AccessesGrant, (accessesGrant) => accessesGrant.permission)
-  grantPermissions: AccessesGrant[];
+  @OneToMany(() => AccessGrant, (accessGrant) => accessGrant.permission)
+  grantPermissions: AccessGrant[];
 }

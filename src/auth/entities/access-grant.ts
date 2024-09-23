@@ -5,7 +5,7 @@ import { Role } from './role.entity';
 @Entity({
   name: 'accesses_grant',
 })
-export class AccessesGrant {
+export class AccessGrant {
   @PrimaryColumn('varchar', {
     length: 50,
   })

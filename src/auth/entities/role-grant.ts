@@ -5,7 +5,7 @@ import { Role } from './role.entity';
 @Entity({
   name: 'roles_grant',
 })
-export class RolesGrant {
+export class RoleGrant {
   @PrimaryColumn('varchar', {
     length: 10,
     name: 'user_id',
@@ -17,7 +17,9 @@ export class RolesGrant {
   @PrimaryColumn('int', {
     name: 'role_id',
   })
-  @ManyToOne(() => Role, (role) => role.roleGrants)
+  @ManyToOne(() => Role, (role) => role.roleGrants, {
+    eager: true,
+  })
   @JoinColumn({ name: 'role_id' })
   public role: Role;
 
@@ -25,6 +27,17 @@ export class RolesGrant {
     default: true,
     name: 'is_grant',
     nullable: false,
+    transformer: {
+      to: (value: boolean) => Buffer.from([value ? 1 : 0]),
+      from: (value: Buffer) => value[0] === 0,
+    },
   })
   public isGrant: boolean;
+
+  @Column('nvarchar', {
+    default: '',
+    nullable: false,
+    length: 100,
+  })
+  notes: string;
 }

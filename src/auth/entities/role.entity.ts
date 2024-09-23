@@ -1,7 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RoleStatus } from './enums/role-status.enum';
-import { RolesGrant } from './role-grants';
-import { AccessesGrant } from './access-grants';
+import { RoleGrant } from './role-grant';
+import { AccessGrant } from './access-grant';
+import { IsNotEmpty } from 'class-validator';
 
 @Entity({
   name: 'roles',
@@ -36,9 +37,9 @@ export class Role {
   })
   public description: string;
 
-  @OneToMany(() => RolesGrant, (rolesGrant) => rolesGrant.role)
-  public roleGrants: RolesGrant[];
+  @OneToMany(() => RoleGrant, (rolesGrant) => rolesGrant.role)
+  public roleGrants: RoleGrant[];
 
-  @OneToMany(() => AccessesGrant, (accessGrant) => accessGrant.role)
-  public accessesGrant: AccessesGrant[];
+  @OneToMany(() => AccessGrant, (accessGrant) => accessGrant.role)
+  public accessesGrant: AccessGrant[];
 }

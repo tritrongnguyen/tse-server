@@ -13,3 +13,10 @@ export enum Services {
 export enum Guards {
   AUTHENTICATION = 'AUTHENTICATION_GUARD',
 }
+
+export enum Role {
+  ADMIN = 'ADMIN',
+  SUPER_USER = 'SUPER_USER',
+  LEADER = 'LEADER',
+  MEMBER = 'MEMBER',
+}
