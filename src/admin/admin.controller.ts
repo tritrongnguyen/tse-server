@@ -7,17 +7,20 @@ import {
   Inject,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
 import { AddRoleDTO } from './dtos/add-role.dto';
-import { Routes, Services } from 'utils/constants';
+import { Role, Routes, Services } from 'utils/constants';
 import { IAdminService } from './admin.interface.service';
 import { GrantRolesDTO } from './dtos/grant-roles.dto';
-import { Public } from 'src/auth/customs';
+import { Public, RequireRoles } from 'src/auth/customs';
+import { Request } from 'express';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller(Routes.ADMIN)
-@UseGuards(AuthenticationGuard)
+@UseGuards(AuthenticationGuard, RolesGuard)
 export class AdminController {
   constructor(
     @Inject(Services.ADMIN)
@@ -25,11 +28,13 @@ export class AdminController {
   ) {}
 
   @Get('roles')
+  @RequireRoles(Role.ADMIN)
   public showRoles() {
     console.log('All the roles');
   }
 
   @Post('roles')
+  @RequireRoles(Role.ADMIN)
   public addRole(@Body() addRoleDTO: AddRoleDTO) {
     try {
       return this.adminService.addRole(addRoleDTO);
@@ -40,7 +45,7 @@ export class AdminController {
 
   @Post('users/:uid/roles')
   @HttpCode(HttpStatus.OK)
-  @Public()
+  @RequireRoles(Role.MEMBER)
   public assignRolesToUser(
     @Param('uid') uid: string,
     @Body() grantRoleDto: GrantRolesDTO,

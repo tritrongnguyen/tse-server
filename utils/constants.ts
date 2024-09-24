@@ -15,8 +15,8 @@ export enum Guards {
 }
 
 export enum Role {
-  ADMIN = 'ADMIN',
-  SUPER_USER = 'SUPER_USER',
-  LEADER = 'LEADER',
-  MEMBER = 'MEMBER',
+  ADMIN = 'admin',
+  SUPER_USER = 'super_user',
+  LEADER = 'leader',
+  MEMBER = 'member',
 }

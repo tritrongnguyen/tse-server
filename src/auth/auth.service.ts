@@ -14,6 +14,10 @@ import { CreateUserDTO } from 'src/users/dtos/create-user.dto';
 import { User } from 'src/users/entities/user.entity';
 import helpers from 'utils/helpers';
 import { LoginDTO } from './dtos/login-dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RoleGrant } from './entities/role-grant';
+import { Repository } from 'typeorm';
+import { RoleStatus } from './entities/enums/role-status.enum';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -21,9 +25,8 @@ export class AuthService implements IAuthService {
     @Inject(Services.USER)
     private userService: IUserService,
     private jwtService: JwtService,
+    @InjectRepository(RoleGrant) roleGrantRepository: Repository<RoleGrant>,
   ) {}
-
-  private readonly user: User[] = [];
 
   async register(registerUserDto: RegisterUserDTO): Promise<User> {
     const userIdExisted = await this.userService.checkUserIdExisted(
@@ -54,9 +57,7 @@ export class AuthService implements IAuthService {
     return this.userService.createUser(createUserDTO);
   }
 
-  async login(
-    loginDto: LoginDTO,
-  ): Promise<{ access_token: string; user: User }> {
+  async login(loginDto: LoginDTO): Promise<{ access_token: string }> {
     const isUserIdExisted = await this.userService.checkUserIdExisted(
       loginDto.userId,
     );
@@ -71,13 +72,23 @@ export class AuthService implements IAuthService {
       userFound.hashedPassword,
     );
 
+    const userRoles = userFound.rolesGrant
+      .filter(
+        (roleGrant) =>
+          roleGrant.isGrant && roleGrant.role.status === RoleStatus.ACTIVE,
+      )
+      .map((roleGrant) => roleGrant.role.roleName);
+
     if (!matchPassword)
       throw new UnauthorizedException('ID or password is wrong!!!');
 
-    const payload = { sub: userFound.userId, username: userFound.email };
+    const payload = {
+      sub: userFound.userId,
+      username: userFound.email,
+      roles: userRoles,
+    };
     return {
       access_token: await this.jwtService.signAsync(payload),
-      user: userFound,
     };
   }
 
