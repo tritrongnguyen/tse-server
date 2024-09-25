@@ -5,7 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as compression from 'compression';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   const PORT = process.env.PORT || 8080;
   app.use(compression());
   app.setGlobalPrefix('/api/v1');
