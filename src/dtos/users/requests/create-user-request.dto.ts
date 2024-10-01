@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 import { UserStatus } from 'src/auth/entities/enums/user-status.enum';
 
-export class CreateUserDTO {
+export class CreateUserRequestDTO {
   @ApiProperty({
     example: 20082681,
     description: "The user's id",
@@ -47,4 +47,20 @@ export class CreateUserDTO {
   lastName: string;
 
   status?: UserStatus;
+
+  constructor(
+    userId?: string,
+    hashedPassword?: string,
+    email?: string,
+    firstName?: string,
+    lastName?: string,
+    status?: UserStatus,
+  ) {
+    this.userId = userId;
+    this.hashedPassword = hashedPassword;
+    this.email = email;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.status = status;
+  }
 }

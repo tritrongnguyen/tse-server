@@ -11,7 +11,6 @@ import { IAuthService } from './auth.interface.service';
 import { IUserService } from 'src/users/user.interface.service';
 import { JwtService } from '@nestjs/jwt';
 import { Services } from 'utils/constants';
-import { CreateUserDTO } from 'src/users/dtos/create-user.dto';
 import helpers from 'utils/helpers';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -25,6 +24,7 @@ import { RegisterResponseDTO } from 'src/dtos/auth/responses/register-response.d
 import { LoginResponseDTO } from 'src/dtos/auth/responses/login-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { UserStatus } from './entities/enums/user-status.enum';
+import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -60,28 +60,28 @@ export class AuthService implements IAuthService {
 
     const hashedPassword = helpers.hashPassword(registerUserDto.password);
 
-    const createUserDTO = new CreateUserDTO();
-    createUserDTO.userId = registerUserDto.userId;
-    createUserDTO.hashedPassword = hashedPassword;
-    createUserDTO.email = registerUserDto.email;
-    createUserDTO.firstName = registerUserDto.firstName;
-    createUserDTO.lastName = registerUserDto.lastName;
-    createUserDTO.status = UserStatus.PENDING_APPROVAL;
+    const createUserDTO = new CreateUserRequestDTO(
+      registerUserDto.userId,
+      hashedPassword,
+      registerUserDto.email,
+      registerUserDto.firstName,
+      registerUserDto.lastName,
+      UserStatus.PENDING_APPROVAL,
+    );
 
     const userCreated = await this.userService.createUser(createUserDTO);
 
     if (!userCreated)
       throw new InternalServerErrorException('Something went wrong!');
 
-    const result = new RegisterResponseDTO();
-    result.statusCode = HttpStatus.CREATED;
-    result.message = 'Register successfully!';
-    result.data = {
-      userId: userCreated.userId,
-      status: userCreated.status,
-    };
-
-    return result;
+    return new RegisterResponseDTO(
+      HttpStatus.CREATED,
+      'Register successfully',
+      {
+        userId: userCreated.userId,
+        status: userCreated.status,
+      },
+    );
   }
 
   async login(loginDto: LoginRequestDTO): Promise<LoginResponseDTO> {

@@ -3,13 +3,15 @@ import { IUserService } from './user.interface.service';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDTO } from './dtos/create-user.dto';
 import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
 import UpdateUserResponseDTO from 'src/dtos/users/response/update-user-response-dto';
 import UpdateUserRequestDTO from 'src/dtos/users/requests/update-user-request-dto';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { SortDirections } from 'utils/constants';
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
+import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
+import { UserStatus } from 'src/auth/entities/enums/user-status.enum';
+import ApproveRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -38,31 +40,45 @@ export class UserService implements IUserService {
     pageSize: number,
     sortDirection: SortDirections,
     sortBy?: keyof User,
-  ): Promise<GetAllUsersResponseDTO> {
-    const getAllUserResponseDto = new GetAllUsersResponseDTO();
+  ): Promise<{
+    users: User[];
+    pageable: number;
+  }> {
+    const startIndex = (pageNum - 1) * pageSize;
+
     const [data, count] = await this.userRepository.findAndCount({
-      skip: (pageNum - 1) * pageSize,
+      skip: startIndex,
       take: pageSize,
       order: {
         [sortBy]: sortDirection,
       },
     });
+    const pageable = Math.ceil(count / pageSize);
 
-    getAllUserResponseDto.users = plainToInstance(User, data);
-    getAllUserResponseDto.count = count;
-
-    return getAllUserResponseDto;
+    if (count < startIndex)
+      return {
+        users: [],
+        pageable: 0,
+      };
+    else {
+      return {
+        users: data,
+        pageable,
+      };
+    }
   }
 
-  async createUser(createUserDTO: CreateUserDTO): Promise<User> {
-    const newUser = new User();
-    newUser.userId = createUserDTO.userId;
-    newUser.hashedPassword = createUserDTO.hashedPassword;
-    newUser.firstName = createUserDTO.firstName;
-    newUser.lastName = createUserDTO.lastName;
-    newUser.email = createUserDTO.email;
-    newUser.status = createUserDTO.status;
-    return await this.userRepository.save(newUser);
+  async createUser(createUserDTO: CreateUserRequestDTO): Promise<User> {
+    return await this.userRepository.save(
+      new User(
+        createUserDTO.userId,
+        createUserDTO.hashedPassword,
+        createUserDTO.firstName,
+        createUserDTO.lastName,
+        createUserDTO.email,
+        createUserDTO.status,
+      ),
+    );
   }
 
   async updateUser(
@@ -93,5 +109,33 @@ export class UserService implements IUserService {
         userId: userId,
       },
     });
+  }
+
+  async getRegisterUsers(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: {
+        status: UserStatus.PENDING_APPROVAL,
+      },
+      order: {
+        registerDate: SortDirections.DESC,
+      },
+    });
+  }
+
+  async approveRegisterRequest(
+    approveRegisterRequestDto: ApproveRegisterRequestDTO,
+  ): Promise<void> {
+    try {
+      const userIds = approveRegisterRequestDto.userIds;
+      this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ status: UserStatus.ACTIVE })
+        .where('userId IN (:...userId)', { userIds })
+        .execute();
+    } catch (error: any) {
+      console.error(error.message);
+      throw error;
+    }
   }
 }

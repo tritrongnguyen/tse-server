@@ -18,10 +18,12 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { RequiredRoles } from 'src/auth/customs';
 import { Roles } from 'utils/security-constants';
 import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
-import ApproveUserRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
 import { PaginationQuery } from 'utils/custom-types';
 import { EntityPropertyErrorFilter } from './error-filters/entity-property-error-filter.filter';
 import { GetUserInfoByIdRequestDTO } from 'src/dtos/users/requests/get-user-info-by-id-request.dto';
+import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
+import GetRegisterUsersResponseDTO from 'src/dtos/users/response/get-register-users-response.dto';
+import ApproveRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -43,20 +45,27 @@ export class UserController {
           ? SortDirections.DESC
           : (SortDirections.ASC ?? SortDirections.ASC);
 
-      return await this.userService.getAllUsersPaginated(
+      const result = await this.userService.getAllUsersPaginated(
         pageNum,
         pageSize,
         sortDirection,
         sortBy,
       );
+
+      return new GetAllUsersResponseDTO(HttpStatus.OK, 'Success', {
+        users: result.users,
+        pageable: result.pageable,
+      });
     } catch (error) {
       throw error;
     }
   }
 
-  @Get(':userId')
+  @Get(':userId/info')
   @RequiredRoles(Roles.ADMIN)
-  async getUserInfoById(@Param() paramDTO: GetUserInfoByIdRequestDTO) {
+  async getUserInfoById(
+    @Param() paramDTO: GetUserInfoByIdRequestDTO,
+  ): Promise<GetUserInfoByIdResponseDTO> {
     try {
       return this.userService.getUserInfoById(paramDTO.userId);
     } catch (error: any) {
@@ -65,17 +74,28 @@ export class UserController {
     }
   }
 
-  @Get('/registers')
+  @Get('registers')
   @HttpCode(HttpStatus.OK)
-  showUserRegisters(@Query() query: {}) {
-    return 'Show approve';
+  @RequiredRoles(Roles.ADMIN)
+  async getRegisterUsers(): Promise<GetRegisterUsersResponseDTO> {
+    return new GetRegisterUsersResponseDTO(
+      HttpStatus.OK,
+      'Success',
+      await this.userService.getRegisterUsers(),
+    );
   }
 
-  @Post('/registers/approve')
+  // Todo: Improve and test this function
+  @Post('registers/approve')
   @HttpCode(HttpStatus.OK)
-  approveUserRegister(
-    @Body() approveUserRegisterDto: ApproveUserRegisterRequestDTO,
+  async approveRegisterRequest(
+    @Body() approveRegisterRequestDto: ApproveRegisterRequestDTO,
   ) {
-    return 'Approved';
+    try {
+      await this.userService.approveRegisterRequest(approveRegisterRequestDto);
+    } catch (error: any) {
+      console.error(error.message);
+      throw error;
+    }
   }
 }

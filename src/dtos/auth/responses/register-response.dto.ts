@@ -8,4 +8,17 @@ export class RegisterResponseDTO implements ApiResponseDTO {
     userId: string;
     status: UserStatus;
   };
+
+  constructor(
+    statusCode?: number,
+    message?: string,
+    data?: {
+      userId: string;
+      status: UserStatus;
+    },
+  ) {
+    this.statusCode = statusCode;
+    this.message = message;
+    this.data = data;
+  }
 }

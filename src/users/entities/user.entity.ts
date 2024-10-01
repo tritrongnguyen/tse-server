@@ -118,4 +118,20 @@ export class User {
 
   @OneToMany(() => LoginLog, (log) => log.user)
   public loginLogs: LoginLog[];
+
+  constructor(
+    userId?: string,
+    hashedPassword?: string,
+    firstName?: string,
+    lastName?: string,
+    email?: string,
+    status?: UserStatus,
+  ) {
+    this.userId = userId;
+    this.hashedPassword = hashedPassword;
+    this.email = email;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.status = status;
+  }
 }
