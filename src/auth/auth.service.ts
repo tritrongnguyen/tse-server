@@ -1,7 +1,9 @@
 import {
   ConflictException,
+  HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -15,12 +17,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoleStatus } from './entities/enums/role-status.enum';
 import { AccessGrant } from './entities/access-grant';
-import RegisterRequestDTO from '../dtos/auth/requests/register-request.dto';
 import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
-import LoginResponseDTO from '../dtos/auth/responses/login-response.dto';
-import RegisterResponseDTO from '../dtos/auth/responses/register-response.dto';
 import GrantAccessesResponseDTO from 'src/dtos/auth/responses/grant-accesses-response.dto';
 import GrantAccessesRequestDTO from 'src/dtos/auth/requests/grant-accesses-request.dto';
+import RegisterRequestDTO from 'src/dtos/auth/requests/register-request.dto';
+import { RegisterResponseDTO } from 'src/dtos/auth/responses/register-response.dto';
+import { LoginResponseDTO } from 'src/dtos/auth/responses/login-response.dto';
+import { User } from 'src/users/entities/user.entity';
+import { UserStatus } from './entities/enums/user-status.enum';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -48,6 +52,7 @@ export class AuthService implements IAuthService {
     const emailExisted = await this.userService.checkEmailExisted(
       registerUserDto.email,
     );
+
     if (emailExisted)
       throw new ConflictException(
         `This email "${registerUserDto.email}" already existed!!!`,
@@ -61,8 +66,22 @@ export class AuthService implements IAuthService {
     createUserDTO.email = registerUserDto.email;
     createUserDTO.firstName = registerUserDto.firstName;
     createUserDTO.lastName = registerUserDto.lastName;
+    createUserDTO.status = UserStatus.PENDING_APPROVAL;
 
-    return this.userService.createUser(createUserDTO);
+    const userCreated = await this.userService.createUser(createUserDTO);
+
+    if (!userCreated)
+      throw new InternalServerErrorException('Something went wrong!');
+
+    const result = new RegisterResponseDTO();
+    result.statusCode = HttpStatus.CREATED;
+    result.message = 'Register successfully!';
+    result.data = {
+      userId: userCreated.userId,
+      status: userCreated.status,
+    };
+
+    return result;
   }
 
   async login(loginDto: LoginRequestDTO): Promise<LoginResponseDTO> {
@@ -75,6 +94,10 @@ export class AuthService implements IAuthService {
       );
 
     const userFound = await this.userService.findUserById(loginDto.userId);
+
+    if (userFound.status !== UserStatus.ACTIVE)
+      throw new UnauthorizedException('User may not activate');
+
     const matchPassword = helpers.comparePassword(
       loginDto.password,
       userFound.hashedPassword,

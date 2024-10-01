@@ -13,13 +13,16 @@ import {
 } from '@nestjs/common';
 import { Routes, Services } from 'utils/constants';
 import { IAuthService } from './auth.interface.service';
-import { Public } from './customs';
+import { Public, RequiredRoles } from './customs';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
 import RegisterRequestDTO from '../dtos/auth/requests/register-request.dto';
+import GrantAccessesRequestDTO from 'src/dtos/auth/requests/grant-accesses-request.dto';
+import { AuthorizationGuard } from './guards/authorization.guard';
+import { Roles } from 'utils/security-constants';
 
 @Controller(Routes.AUTH)
-@UseGuards(AuthenticationGuard)
+@UseGuards(AuthenticationGuard, AuthorizationGuard)
 export class AuthController {
   constructor(
     @Inject(Services.AUTH) private readonly authService: IAuthService,
@@ -30,7 +33,7 @@ export class AuthController {
   async registerUser(@Body() registerRequestDTO: RegisterRequestDTO) {
     try {
       return await this.authService.register(registerRequestDTO);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof ConflictException) throw error;
       else {
         console.error(error.message);
@@ -45,7 +48,7 @@ export class AuthController {
   async login(@Body() loginRequestDto: LoginRequestDTO) {
     try {
       return await this.authService.login(loginRequestDto);
-    } catch (error) {
+    } catch (error: any) {
       if (
         error instanceof NotFoundException ||
         error instanceof UnauthorizedException
@@ -61,4 +64,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('reset-password')
   async resetPassword() {}
+
+  @Post('grant-accesses')
+  @HttpCode(HttpStatus.OK)
+  @RequiredRoles(Roles.ADMIN)
+  async grantAccessesToUsers(
+    @Body() grantAccessesRequestDto: GrantAccessesRequestDTO,
+  ) {
+    try {
+      return await this.authService.grantAccesses(grantAccessesRequestDto);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -10,3 +10,8 @@ export enum Services {
   ADMIN = 'ADMIN_SERVICE',
   PERMISSION = 'PERMISSION_SERVICE',
 }
+
+export enum SortDirections {
+  DESC = 'desc',
+  ASC = 'asc',
+}

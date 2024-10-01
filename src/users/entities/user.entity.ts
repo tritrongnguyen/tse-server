@@ -5,6 +5,7 @@ import { UserType } from './enums/user-type.enum';
 import { Faculty } from './enums/faculty.enum';
 import { LoginLog } from '../../auth/entities/login-log';
 import { AccessGrant } from 'src/auth/entities/access-grant';
+import { Exclude } from 'class-transformer';
 @Entity({
   name: 'users',
 })
@@ -20,6 +21,10 @@ export class User {
     nullable: false,
     name: 'hashed_password',
     length: 100,
+  })
+  @Exclude({
+    toClassOnly: true,
+    toPlainOnly: true,
   })
   public hashedPassword: string;
 

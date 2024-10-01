@@ -1,11 +1,25 @@
-import { Controller, Get, Inject, UseGuards } from '@nestjs/common';
-import { Routes, Services } from 'utils/constants';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+  Query,
+  UseFilters,
+  UseGuards,
+} from '@nestjs/common';
+import { Routes, Services, SortDirections } from 'utils/constants';
 import { IUserService } from './user.interface.service';
 import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { RequiredRoles } from 'src/auth/customs';
 import { Roles } from 'utils/security-constants';
 import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
+import ApproveUserRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
+import { PaginationQuery } from 'utils/custom-types';
+import { EntityPropertyErrorFilter } from './error-filters/entity-property-error-filter.filter';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -14,7 +28,41 @@ export class UserController {
 
   @Get('')
   @RequiredRoles(Roles.ADMIN, Roles.CORE)
-  async showUsers(): Promise<GetAllUsersResponseDTO> {
-    return await this.userService.getAllUsers();
+  @UseFilters(EntityPropertyErrorFilter)
+  async showUsersPaginated(
+    @Query('query') query?: PaginationQuery,
+  ): Promise<GetAllUsersResponseDTO> {
+    try {
+      const pageNum = query?.page ?? 1;
+      const pageSize = query?.size ?? 15;
+      let sortBy = query?.sortBy ?? 'userId';
+      const sortDirection =
+        query?.sortDirection === 'desc'
+          ? SortDirections.DESC
+          : (SortDirections.ASC ?? SortDirections.ASC);
+
+      return await this.userService.getAllUsersPaginated(
+        pageNum,
+        pageSize,
+        sortDirection,
+        sortBy,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('/registers')
+  @HttpCode(HttpStatus.OK)
+  showUserRegisters(@Query() query: {}) {
+    return 'Show approve';
+  }
+
+  @Post('/registers/approve')
+  @HttpCode(HttpStatus.OK)
+  approveUserRegister(
+    @Body() approveUserRegisterDto: ApproveUserRegisterRequestDTO,
+  ) {
+    return 'Approved';
   }
 }
