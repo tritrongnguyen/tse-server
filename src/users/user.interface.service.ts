@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import UpdateUserResponseDTO from 'src/dtos/users/response/update-user-response-dto';
 import UpdateUserRequestDTO from 'src/dtos/users/requests/update-user-request-dto';
 import { SortDirections } from 'utils/constants';
+import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 export interface IUserService {
   getAllUsersPaginated(
     pageNum: number,
@@ -18,4 +19,6 @@ export interface IUserService {
   updateUser(
     updateUserRequestDto: UpdateUserRequestDTO,
   ): Promise<UpdateUserResponseDTO>;
+
+  getUserInfoById(userId: string): Promise<GetUserInfoByIdResponseDTO>;
 }

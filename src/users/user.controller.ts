@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Query,
   UseFilters,
@@ -20,6 +21,7 @@ import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-respon
 import ApproveUserRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
 import { PaginationQuery } from 'utils/custom-types';
 import { EntityPropertyErrorFilter } from './error-filters/entity-property-error-filter.filter';
+import { GetUserInfoByIdRequestDTO } from 'src/dtos/users/requests/get-user-info-by-id-request.dto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -48,6 +50,17 @@ export class UserController {
         sortBy,
       );
     } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get(':userId')
+  @RequiredRoles(Roles.ADMIN)
+  async getUserInfoById(@Param() paramDTO: GetUserInfoByIdRequestDTO) {
+    try {
+      return this.userService.getUserInfoById(paramDTO.userId);
+    } catch (error: any) {
+      console.error(error.message);
       throw error;
     }
   }
