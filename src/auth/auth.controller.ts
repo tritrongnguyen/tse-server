@@ -13,11 +13,10 @@ import {
 } from '@nestjs/common';
 import { Routes, Services } from 'utils/constants';
 import { IAuthService } from './auth.interface.service';
-import { RegisterUserDTO } from './dtos/register-user.dto';
-import { instanceToPlain } from 'class-transformer';
-import { LoginDTO } from './dtos/login-dto';
 import { Public } from './customs';
 import { AuthenticationGuard } from './guards/authentication.guard';
+import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
+import RegisterRequestDTO from '../dtos/auth/requests/register-request.dto';
 
 @Controller(Routes.AUTH)
 @UseGuards(AuthenticationGuard)
@@ -28,9 +27,9 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  async registerUser(@Body() registerUserDTO: RegisterUserDTO) {
+  async registerUser(@Body() registerRequestDTO: RegisterRequestDTO) {
     try {
-      return instanceToPlain(await this.authService.register(registerUserDTO));
+      return await this.authService.register(registerRequestDTO);
     } catch (error) {
       if (error instanceof ConflictException) throw error;
       else {
@@ -43,9 +42,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('login')
-  async login(@Body() loginDto: LoginDTO) {
+  async login(@Body() loginRequestDto: LoginRequestDTO) {
     try {
-      return instanceToPlain(await this.authService.login(loginDto));
+      return await this.authService.login(loginRequestDto);
     } catch (error) {
       if (
         error instanceof NotFoundException ||

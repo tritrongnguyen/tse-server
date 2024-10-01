@@ -8,27 +8,35 @@ import {
 import { IAuthService } from './auth.interface.service';
 import { IUserService } from 'src/users/user.interface.service';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterUserDTO } from './dtos/register-user.dto';
 import { Services } from 'utils/constants';
 import { CreateUserDTO } from 'src/users/dtos/create-user.dto';
-import { User } from 'src/users/entities/user.entity';
 import helpers from 'utils/helpers';
-import { LoginDTO } from './dtos/login-dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RoleGrant } from './entities/role-grant';
 import { Repository } from 'typeorm';
 import { RoleStatus } from './entities/enums/role-status.enum';
+import { AccessGrant } from './entities/access-grant';
+import RegisterRequestDTO from '../dtos/auth/requests/register-request.dto';
+import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
+import LoginResponseDTO from '../dtos/auth/responses/login-response.dto';
+import RegisterResponseDTO from '../dtos/auth/responses/register-response.dto';
+import GrantAccessesResponseDTO from 'src/dtos/auth/responses/grant-accesses-response.dto';
+import GrantAccessesRequestDTO from 'src/dtos/auth/requests/grant-accesses-request.dto';
 
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
     @Inject(Services.USER)
     private userService: IUserService,
+
     private jwtService: JwtService,
-    @InjectRepository(RoleGrant) roleGrantRepository: Repository<RoleGrant>,
+
+    @InjectRepository(AccessGrant)
+    private accessGrantRepository: Repository<AccessGrant>,
   ) {}
 
-  async register(registerUserDto: RegisterUserDTO): Promise<User> {
+  async register(
+    registerUserDto: RegisterRequestDTO,
+  ): Promise<RegisterResponseDTO> {
     const userIdExisted = await this.userService.checkUserIdExisted(
       registerUserDto.userId,
     );
@@ -57,7 +65,7 @@ export class AuthService implements IAuthService {
     return this.userService.createUser(createUserDTO);
   }
 
-  async login(loginDto: LoginDTO): Promise<{ access_token: string }> {
+  async login(loginDto: LoginRequestDTO): Promise<LoginResponseDTO> {
     const isUserIdExisted = await this.userService.checkUserIdExisted(
       loginDto.userId,
     );
@@ -72,24 +80,26 @@ export class AuthService implements IAuthService {
       userFound.hashedPassword,
     );
 
-    const userRoles = userFound.rolesGrant
-      .filter(
-        (roleGrant) =>
-          roleGrant.isGrant && roleGrant.role.status === RoleStatus.ACTIVE,
-      )
-      .map((roleGrant) => roleGrant.role.roleName);
-
     if (!matchPassword)
       throw new UnauthorizedException('ID or password is wrong!!!');
+
+    const userRoles = await userFound.rolesGrant.then((results) => {
+      return results
+        .filter(
+          (roleGrant) =>
+            roleGrant.isGrant && roleGrant.role.status === RoleStatus.ACTIVE,
+        )
+        .map((roleGrant) => roleGrant.role.roleName);
+    });
 
     const payload = {
       sub: userFound.userId,
       username: userFound.email,
       roles: userRoles,
     };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+    const loginResponse = new LoginResponseDTO();
+    loginResponse.token = await this.jwtService.signAsync(payload);
+    return loginResponse;
   }
 
   logout(): void {
@@ -103,5 +113,16 @@ export class AuthService implements IAuthService {
   }
   validateUser(): void {
     throw new Error('Method not implemented.');
+  }
+
+  async grantAccesses(
+    grantAccessRequestDto: GrantAccessesRequestDTO,
+  ): Promise<GrantAccessesResponseDTO> {
+    try {
+      console.log(grantAccessRequestDto);
+      return new GrantAccessesResponseDTO();
+    } catch (error) {
+      throw error;
+    }
   }
 }

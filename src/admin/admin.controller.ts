@@ -5,55 +5,61 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  Param,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
-import { AddRoleDTO } from './dtos/add-role.dto';
-import { Role, Routes, Services } from 'utils/constants';
+import { Routes, Services } from 'utils/constants';
 import { IAdminService } from './admin.interface.service';
-import { GrantRolesDTO } from './dtos/grant-roles.dto';
-import { Public, RequireRoles } from 'src/auth/customs';
-import { Request } from 'express';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { RequiredRoles } from 'src/auth/customs';
+import { Roles } from 'utils/security-constants';
+import GrantAccessesRequestDTO from '../dtos/auth/requests/grant-accesses-request.dto';
+import { IUserService } from 'src/users/user.interface.service';
+import { IAuthService } from 'src/auth/auth.interface.service';
+import ApproveUserRegisterDTO from './dtos/request/ApproveUserRegister.dto';
 
 @Controller(Routes.ADMIN)
-@UseGuards(AuthenticationGuard, RolesGuard)
+@UseGuards(AuthenticationGuard, AuthorizationGuard)
+@RequiredRoles(Roles.ADMIN)
 export class AdminController {
   constructor(
     @Inject(Services.ADMIN)
     private adminService: IAdminService,
+
+    @Inject(Services.USER)
+    private userService: IUserService,
+
+    @Inject(Services.AUTH)
+    private authService: IAuthService,
   ) {}
 
   @Get('roles')
-  @RequireRoles(Role.ADMIN)
-  public showRoles() {
-    console.log('All the roles');
+  showRoles() {
+    return 'This is get all the roles';
   }
 
-  @Post('roles')
-  @RequireRoles(Role.ADMIN)
-  public addRole(@Body() addRoleDTO: AddRoleDTO) {
-    try {
-      return this.adminService.addRole(addRoleDTO);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Post('users/:uid/roles')
+  @Post('roles/grant-accesses')
   @HttpCode(HttpStatus.OK)
-  @RequireRoles(Role.MEMBER)
-  public assignRolesToUser(
-    @Param('uid') uid: string,
-    @Body() grantRoleDto: GrantRolesDTO,
+  async grantAccessesToUsers(
+    @Body() grantAccessesRequestDto: GrantAccessesRequestDTO,
   ) {
     try {
-      return this.adminService.grantRolesToUser(uid, grantRoleDto);
+      return await this.authService.grantAccesses(grantAccessesRequestDto);
     } catch (error) {
       throw error;
     }
+  }
+
+  @Get('users/registers')
+  @HttpCode(HttpStatus.OK)
+  showUserRegisters() {
+    return 'Show approve';
+  }
+
+  @Post('users/registers/approve')
+  @HttpCode(HttpStatus.OK)
+  approveUserRegister(@Body() approveUserRegisterDto: ApproveUserRegisterDTO) {
+    return 'Approved';
   }
 }

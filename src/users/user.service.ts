@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto';
+import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -11,6 +12,20 @@ export class UserService implements IUserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
+
+  // Todo: get in here
+  async getAllUsers(): Promise<GetAllUsersResponseDTO> {
+    const getAllUserResponseDto = new GetAllUsersResponseDTO();
+    getAllUserResponseDto.users = await this.userRepository
+      .find()
+      .then((users) => {
+        return users.map((user) => {
+          const { hashedPassword, ...rest } = user;
+          return rest;
+        });
+      });
+    return getAllUserResponseDto;
+  }
 
   async createUser(createUserDTO: CreateUserDTO): Promise<User> {
     const newUser = new User();

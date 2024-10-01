@@ -1,12 +1,10 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { RoleGrant } from '../../auth/entities/role-grant';
 import { UserStatus } from '../../auth/entities/enums/user-status.enum';
 import { LoginStatus } from '../../auth/entities/enums/login-status.enum';
 import { UserType } from './enums/user-type.enum';
 import { Faculty } from './enums/faculty.enum';
-import { Exclude } from 'class-transformer';
 import { LoginLog } from '../../auth/entities/login-log';
-
+import { AccessGrant } from 'src/auth/entities/access-grant';
 @Entity({
   name: 'users',
 })
@@ -23,16 +21,12 @@ export class User {
     name: 'hashed_password',
     length: 100,
   })
-  @Exclude()
   public hashedPassword: string;
 
   @Column('timestamp', {
     name: 'register_date',
     nullable: false,
     default: () => 'CURRENT_TIMESTAMP',
-  })
-  @Exclude({
-    toPlainOnly: true,
   })
   public registerDate: Date;
 
@@ -72,9 +66,6 @@ export class User {
     nullable: false,
     default: UserType.STUDENT,
   })
-  @Exclude({
-    toPlainOnly: true,
-  })
   public userType: UserType;
 
   @Column('enum', {
@@ -105,9 +96,6 @@ export class User {
     nullable: false,
     default: UserStatus.ACTIVE,
   })
-  @Exclude({
-    toPlainOnly: true,
-  })
   public status: UserStatus;
 
   @Column('enum', {
@@ -116,13 +104,12 @@ export class User {
     nullable: false,
     default: LoginStatus.OFFLINE,
   })
-  @Exclude()
   public loginStatus: LoginStatus;
 
-  @OneToMany(() => RoleGrant, (rolesGrant) => rolesGrant.user, {
-    eager: true,
+  @OneToMany(() => AccessGrant, (accessGrant) => accessGrant.user, {
+    lazy: true,
   })
-  public rolesGrant: RoleGrant[];
+  public rolesGrant: Promise<AccessGrant[]>;
 
   @OneToMany(() => LoginLog, (log) => log.user)
   public loginLogs: LoginLog[];

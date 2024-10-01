@@ -37,7 +37,7 @@ export class AuthenticationGuard implements CanActivate {
         secret: process.env.JWT_SECRET,
       });
       //pass this to request to do something
-      request['user'] = payload;
+      request['authen'] = payload;
     } catch (error) {
       throw new UnauthorizedException();
     }

@@ -5,7 +5,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { Services } from 'utils/constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Role } from 'src/auth/entities/role.entity';
-import { RoleGrant } from 'src/auth/entities/role-grant';
+import { AccessGrant } from 'src/auth/entities/access-grant';
+import { UsersModule } from 'src/users/user.module';
 
 @Module({
   controllers: [AdminController],
@@ -15,6 +16,10 @@ import { RoleGrant } from 'src/auth/entities/role-grant';
       useClass: AdminService,
     },
   ],
-  imports: [AuthModule, TypeOrmModule.forFeature([Role, RoleGrant])],
+  imports: [
+    TypeOrmModule.forFeature([Role, AccessGrant]),
+    AuthModule,
+    UsersModule,
+  ],
 })
 export class AdminModule {}

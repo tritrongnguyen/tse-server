@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { Guards, Services } from 'utils/constants';
+import { Services } from 'utils/constants';
 import { UsersModule } from 'src/users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { authEntities } from './entities';
 import { AuthenticationGuard } from './guards/authentication.guard';
+import { Guards } from 'utils/security-constants';
+import { AuthorizationGuard } from './guards/authorization.guard';
 
 @Module({
   imports: [
@@ -32,6 +34,10 @@ import { AuthenticationGuard } from './guards/authentication.guard';
       provide: Guards.AUTHENTICATION,
       useClass: AuthenticationGuard,
     },
+    {
+      provide: Guards.AUTHORIZATION,
+      useClass: AuthorizationGuard,
+    },
   ],
   exports: [
     {
@@ -41,6 +47,10 @@ import { AuthenticationGuard } from './guards/authentication.guard';
     {
       provide: Guards.AUTHENTICATION,
       useClass: AuthenticationGuard,
+    },
+    {
+      provide: Guards.AUTHORIZATION,
+      useClass: AuthorizationGuard,
     },
   ],
 })

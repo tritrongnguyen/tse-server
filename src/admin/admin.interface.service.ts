@@ -1,12 +1,12 @@
 import { Role } from 'src/auth/entities/role.entity';
 import { AddRoleDTO } from './dtos/add-role.dto';
-import { RoleGrant } from 'src/auth/entities/role-grant';
 import { GrantRolesDTO } from './dtos/grant-roles.dto';
+import { AccessGrant } from 'src/auth/entities/access-grant';
+import GrantAccessesRequestDTO from '../dtos/auth/requests/grant-accesses-request.dto';
+import GrantAccessesResponseDTO from '../dtos/auth/responses/grant-accesses-response.dto';
 
 export interface IAdminService {
-  addRole(addRoleDto: AddRoleDTO): Promise<Role>;
-  grantRolesToUser(
-    userId: string,
-    grantRoleDto: GrantRolesDTO,
-  ): Promise<RoleGrant[]>;
+  grantAccess(
+    grantAccessesRequestDto: GrantAccessesRequestDTO,
+  ): Promise<GrantAccessesResponseDTO>;
 }
