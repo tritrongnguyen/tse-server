@@ -11,13 +11,13 @@ import { EntityPropertyNotFoundError } from 'typeorm';
 export class EntityPropertyErrorFilter implements ExceptionFilter {
   catch(exception: EntityPropertyNotFoundError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+    const res = ctx.getResponse<Response>();
 
-    return response.status(HttpStatus.BAD_REQUEST).json({
+    return res.status(HttpStatus.BAD_REQUEST).json({
       statusCode: HttpStatus.BAD_REQUEST,
-      message: 'Invalid query parameter',
-      error: 'Bad Request',
-      details: exception.message,
+      message: exception.message,
+      error: exception.constructor.name,
+      timestamp: new Date().toISOString(),
     });
   }
 }

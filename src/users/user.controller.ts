@@ -24,9 +24,11 @@ import { GetUserInfoByIdRequestDTO } from 'src/dtos/users/requests/get-user-info
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 import GetRegisterUsersResponseDTO from 'src/dtos/users/response/get-register-users-response.dto';
 import ApproveRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
+import { HttpExceptionFilter } from 'utils/http-exception-filter';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
+@UseFilters(HttpExceptionFilter)
 export class UserController {
   constructor(@Inject(Services.USER) private userService: IUserService) {}
 
@@ -36,42 +38,36 @@ export class UserController {
   async showUsersPaginated(
     @Query('query') query?: PaginationQuery,
   ): Promise<GetAllUsersResponseDTO> {
-    try {
-      const pageNum = query?.page ?? 1;
-      const pageSize = query?.size ?? 15;
-      let sortBy = query?.sortBy ?? 'userId';
-      const sortDirection =
-        query?.sortDirection === 'desc'
-          ? SortDirections.DESC
-          : (SortDirections.ASC ?? SortDirections.ASC);
+    const {
+      page = 1,
+      size = 15,
+      sortBy = 'userId',
+      sortDirection = SortDirections.ASC,
+    } = query;
 
-      const result = await this.userService.getAllUsersPaginated(
-        pageNum,
-        pageSize,
-        sortDirection,
-        sortBy,
-      );
+    const normalizeSortDirection =
+      sortDirection.toLocaleLowerCase() === 'desc'
+        ? SortDirections.DESC
+        : (SortDirections.ASC ?? SortDirections.ASC);
 
-      return new GetAllUsersResponseDTO(HttpStatus.OK, 'Success', {
-        users: result.users,
-        pageable: result.pageable,
-      });
-    } catch (error) {
-      throw error;
-    }
+    const { users, pageable } = await this.userService.getAllUsersPaginated(
+      page,
+      size,
+      normalizeSortDirection,
+      sortBy,
+    );
+
+    return new GetAllUsersResponseDTO(HttpStatus.OK, 'Success', {
+      users,
+      pageable,
+    });
   }
 
   @Get(':userId/info')
-  @RequiredRoles(Roles.ADMIN)
   async getUserInfoById(
     @Param() paramDTO: GetUserInfoByIdRequestDTO,
   ): Promise<GetUserInfoByIdResponseDTO> {
-    try {
-      return this.userService.getUserInfoById(paramDTO.userId);
-    } catch (error: any) {
-      console.error(error.message);
-      throw error;
-    }
+    return this.userService.getUserInfoById(paramDTO.userId);
   }
 
   @Get('registers')
@@ -91,11 +87,6 @@ export class UserController {
   async approveRegisterRequest(
     @Body() approveRegisterRequestDto: ApproveRegisterRequestDTO,
   ) {
-    try {
-      await this.userService.approveRegisterRequest(approveRegisterRequestDto);
-    } catch (error: any) {
-      console.error(error.message);
-      throw error;
-    }
+    await this.userService.approveRegisterRequest(approveRegisterRequestDto);
   }
 }

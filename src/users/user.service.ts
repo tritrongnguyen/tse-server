@@ -1,9 +1,13 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { IUserService } from './user.interface.service';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
 import UpdateUserResponseDTO from 'src/dtos/users/response/update-user-response-dto';
 import UpdateUserRequestDTO from 'src/dtos/users/requests/update-user-request-dto';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
@@ -69,21 +73,39 @@ export class UserService implements IUserService {
   }
 
   async createUser(createUserDTO: CreateUserRequestDTO): Promise<User> {
+    const { userId, email, firstName, hashedPassword, lastName, status } =
+      createUserDTO;
+
+    const isExisted = await this.userRepository.exists({
+      where: [{ userId }, { email }],
+    });
+
+    if (isExisted)
+      throw new ConflictException(
+        `User with ID ${userId} or email ${email} already existed!`,
+      );
+
     return await this.userRepository.save(
-      new User(
-        createUserDTO.userId,
-        createUserDTO.hashedPassword,
-        createUserDTO.firstName,
-        createUserDTO.lastName,
-        createUserDTO.email,
-        createUserDTO.status,
-      ),
+      new User(userId, hashedPassword, firstName, lastName, email, status),
     );
   }
 
   async updateUser(
     updateUserRequestDTO: UpdateUserRequestDTO,
   ): Promise<UpdateUserResponseDTO> {
+    const { user } = updateUserRequestDTO;
+
+    const isExisted = await this.userRepository.exists({
+      where: {
+        userId: user.userId,
+      },
+    });
+
+    if (!isExisted)
+      throw new NotFoundException(
+        `User with ID ${user.userId} doesn't existed`,
+      );
+
     await this.userRepository.save(updateUserRequestDTO.user);
     const result = new UpdateUserResponseDTO();
     result.statusCode = HttpStatus.OK;
@@ -125,17 +147,12 @@ export class UserService implements IUserService {
   async approveRegisterRequest(
     approveRegisterRequestDto: ApproveRegisterRequestDTO,
   ): Promise<void> {
-    try {
-      const userIds = approveRegisterRequestDto.userIds;
-      this.userRepository
-        .createQueryBuilder()
-        .update(User)
-        .set({ status: UserStatus.ACTIVE })
-        .where('userId IN (:...userId)', { userIds })
-        .execute();
-    } catch (error: any) {
-      console.error(error.message);
-      throw error;
-    }
+    const userIds = approveRegisterRequestDto.userIds;
+    this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ status: UserStatus.ACTIVE })
+      .where('userId IN (:...userId)', { userIds })
+      .execute();
   }
 }
