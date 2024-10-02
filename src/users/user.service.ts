@@ -2,23 +2,28 @@ import {
   ConflictException,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { IUserService } from './user.interface.service';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import UpdateUserResponseDTO from 'src/dtos/users/response/update-user-response-dto';
 import UpdateUserRequestDTO from 'src/dtos/users/requests/update-user-request-dto';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { instanceToPlain } from 'class-transformer';
 import { SortDirections } from 'utils/constants';
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
 import { UserStatus } from 'src/auth/entities/enums/user-status.enum';
-import ApproveRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
+import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
+import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
 
 @Injectable()
 export class UserService implements IUserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -144,15 +149,72 @@ export class UserService implements IUserService {
     });
   }
 
+  async getLeftRequest(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: {
+        status: UserStatus.LEFT_REQUESTING,
+      },
+      order: {
+        registerDate: SortDirections.DESC,
+      },
+    });
+  }
+
+  // Missing handle id user id not existed in register request
   async approveRegisterRequest(
     approveRegisterRequestDto: ApproveRegisterRequestDTO,
   ): Promise<void> {
-    const userIds = approveRegisterRequestDto.userIds;
-    this.userRepository
-      .createQueryBuilder()
-      .update(User)
-      .set({ status: UserStatus.ACTIVE })
-      .where('userId IN (:...userId)', { userIds })
-      .execute();
+    try {
+      const { userIds } = approveRegisterRequestDto;
+
+      this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ status: UserStatus.ACTIVE, registerDate: new Date() })
+        .where('userId IN (:...userId)', { userIds })
+        .execute();
+    } catch (error: any) {
+      this.logger.error(
+        `Error approving register users: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        'Failed to approve register users',
+      );
+    }
+  }
+  // User later for send mail
+  // private async handlePostApproval(userIds: string[]): Promise<void> {
+  //   try {
+  //     // Example: Send welcome emails
+  //     await this.emailService.sendWelcomeEmails(userIds);
+
+  //     // Example: Create default resources for approved users
+  //     await this.resourceService.createDefaultResources(userIds);
+  //   } catch (error) {
+  //     this.logger.error(`Error in post-approval handling: ${error.message}`);
+  //     // Don't throw here, log and continue
+  //   }
+  // }
+
+  async approveLeftRequest(
+    approveLeftRequestDto: ApproveLeftRequestDTO,
+  ): Promise<void> {
+    try {
+      const { userIds } = approveLeftRequestDto;
+
+      this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ status: UserStatus.TERMINATED })
+        .where('userId IN (:...userId)', { userIds })
+        .execute();
+    } catch (error: any) {
+      this.logger.error(
+        `Error approving left requests: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to approve left requests');
+    }
   }
 }

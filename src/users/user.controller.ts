@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Logger,
   Param,
   Post,
   Query,
@@ -19,17 +20,21 @@ import { RequiredRoles } from 'src/auth/customs';
 import { Roles } from 'utils/security-constants';
 import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
 import { PaginationQuery } from 'utils/custom-types';
-import { EntityPropertyErrorFilter } from './error-filters/entity-property-error-filter.filter';
+import { EntityPropertyErrorFilter } from './filters/entity-property-error-filter.filter';
 import { GetUserInfoByIdRequestDTO } from 'src/dtos/users/requests/get-user-info-by-id-request.dto';
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 import GetRegisterUsersResponseDTO from 'src/dtos/users/response/get-register-users-response.dto';
-import ApproveRegisterRequestDTO from 'src/dtos/users/requests/approve-user-register-request.dto';
 import { HttpExceptionFilter } from 'utils/http-exception-filter';
+import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
+import { GetLeftRequestsResponseDTO } from 'src/dtos/users/response/get-left-requests-response.dto';
+import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
 @UseFilters(HttpExceptionFilter)
 export class UserController {
+  private readonly logger = new Logger(UserController.name);
+
   constructor(@Inject(Services.USER) private userService: IUserService) {}
 
   @Get('')
@@ -81,12 +86,30 @@ export class UserController {
     );
   }
 
-  // Todo: Improve and test this function
+  @Get('left-request')
+  @HttpCode(HttpStatus.OK)
+  @RequiredRoles(Roles.ADMIN)
+  async getLeftRequests(): Promise<GetLeftRequestsResponseDTO> {
+    return new GetLeftRequestsResponseDTO(
+      HttpStatus.OK,
+      'Success',
+      await this.userService.getRegisterUsers(),
+    );
+  }
+
   @Post('registers/approve')
   @HttpCode(HttpStatus.OK)
   async approveRegisterRequest(
     @Body() approveRegisterRequestDto: ApproveRegisterRequestDTO,
   ) {
     await this.userService.approveRegisterRequest(approveRegisterRequestDto);
+  }
+
+  @Post('left-request/approve')
+  @HttpCode(HttpStatus.OK)
+  async approveLeftRequest(
+    @Body() approveLeftRequestDto: ApproveLeftRequestDTO,
+  ) {
+    await this.userService.approveLeftRequest(approveLeftRequestDto);
   }
 }
