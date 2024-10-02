@@ -5,14 +5,15 @@ import { Services } from 'utils/constants';
 import { UsersModule } from 'src/users/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { authEntities } from './entities';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import { Guards } from 'utils/security-constants';
 import { AuthorizationGuard } from './guards/authorization.guard';
+import { AccessGrant } from 'src/entities/access-grant';
+import { Role } from 'src/entities/role.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature(authEntities),
+    TypeOrmModule.forFeature([AccessGrant, Role]),
     UsersModule,
     JwtModule.registerAsync({
       useFactory: async () => ({

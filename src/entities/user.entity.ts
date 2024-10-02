@@ -1,11 +1,9 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { UserStatus } from '../../auth/entities/enums/user-status.enum';
-import { LoginStatus } from '../../auth/entities/enums/login-status.enum';
 import { UserType } from './enums/user-type.enum';
 import { Faculty } from './enums/faculty.enum';
-import { LoginLog } from '../../auth/entities/login-log';
-import { AccessGrant } from 'src/auth/entities/access-grant';
 import { Exclude } from 'class-transformer';
+import { UserStatus } from './enums/user-status.enum';
+import { AccessGrant } from './access-grant';
 @Entity({
   name: 'users',
 })
@@ -22,10 +20,7 @@ export class User {
     name: 'hashed_password',
     length: 100,
   })
-  @Exclude({
-    toClassOnly: true,
-    toPlainOnly: true,
-  })
+  @Exclude()
   public hashedPassword: string;
 
   @Column('timestamp', {
@@ -103,21 +98,10 @@ export class User {
   })
   public status: UserStatus;
 
-  @Column('enum', {
-    enum: LoginStatus,
-    enumName: 'login_status',
-    nullable: false,
-    default: LoginStatus.OFFLINE,
-  })
-  public loginStatus: LoginStatus;
-
   @OneToMany(() => AccessGrant, (accessGrant) => accessGrant.user, {
     lazy: true,
   })
   public rolesGrant: Promise<AccessGrant[]>;
-
-  @OneToMany(() => LoginLog, (log) => log.user)
-  public loginLogs: LoginLog[];
 
   constructor(
     userId?: string,

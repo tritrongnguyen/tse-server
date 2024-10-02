@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Post,
   UnauthorizedException,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { Routes, Services } from 'utils/constants';
@@ -20,9 +21,11 @@ import RegisterRequestDTO from '../dtos/auth/requests/register-request.dto';
 import GrantAccessesRequestDTO from 'src/dtos/auth/requests/grant-accesses-request.dto';
 import { AuthorizationGuard } from './guards/authorization.guard';
 import { Roles } from 'utils/security-constants';
+import { HttpExceptionFilter } from 'utils/http-exception-filter';
 
 @Controller(Routes.AUTH)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
+@UseFilters(HttpExceptionFilter)
 export class AuthController {
   constructor(
     @Inject(Services.AUTH) private readonly authService: IAuthService,
@@ -31,34 +34,14 @@ export class AuthController {
   @Public()
   @Post('register')
   async registerUser(@Body() registerRequestDTO: RegisterRequestDTO) {
-    try {
-      return await this.authService.register(registerRequestDTO);
-    } catch (error: any) {
-      if (error instanceof ConflictException) throw error;
-      else {
-        console.error(error.message);
-        throw new InternalServerErrorException('Something went wrong!!!');
-      }
-    }
+    return await this.authService.register(registerRequestDTO);
   }
 
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('login')
   async login(@Body() loginRequestDto: LoginRequestDTO) {
-    try {
-      return await this.authService.login(loginRequestDto);
-    } catch (error: any) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      )
-        throw error;
-      else {
-        console.error(error.message);
-        throw new InternalServerErrorException('Some thing went wrong!!!');
-      }
-    }
+    return await this.authService.login(loginRequestDto);
   }
 
   @HttpCode(HttpStatus.OK)

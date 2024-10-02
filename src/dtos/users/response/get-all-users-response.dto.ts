@@ -1,5 +1,5 @@
 import { ApiResponseDTO } from 'src/dtos';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 
 export default class GetAllUsersResponseDTO implements ApiResponseDTO {
   constructor(

@@ -2,31 +2,34 @@ import {
   ConflictException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { IUserService } from './user.interface.service';
-import { In, Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import UpdateUserResponseDTO from 'src/dtos/users/response/update-user-response-dto';
-import UpdateUserRequestDTO from 'src/dtos/users/requests/update-user-request-dto';
 import { instanceToPlain } from 'class-transformer';
 import { SortDirections } from 'utils/constants';
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
-import { UserStatus } from 'src/auth/entities/enums/user-status.enum';
 import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
 import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
+import { AccessGrant } from 'src/entities/access-grant';
+import { UserStatus } from 'src/entities/enums/user-status.enum';
+import { Role } from 'src/entities/role.entity';
+import { Roles } from 'utils/security-constants';
 
 @Injectable()
 export class UserService implements IUserService {
-  private readonly logger = new Logger(UserService.name);
-
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(AccessGrant)
+    private accessGrantRepository: Repository<AccessGrant>,
+
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
   ) {}
 
   async getUserInfoById(userId: string): Promise<GetUserInfoByIdResponseDTO> {
@@ -95,11 +98,7 @@ export class UserService implements IUserService {
     );
   }
 
-  async updateUser(
-    updateUserRequestDTO: UpdateUserRequestDTO,
-  ): Promise<UpdateUserResponseDTO> {
-    const { user } = updateUserRequestDTO;
-
+  async updateUser(user: User): Promise<User> {
     const isExisted = await this.userRepository.exists({
       where: {
         userId: user.userId,
@@ -111,11 +110,7 @@ export class UserService implements IUserService {
         `User with ID ${user.userId} doesn't existed`,
       );
 
-    await this.userRepository.save(updateUserRequestDTO.user);
-    const result = new UpdateUserResponseDTO();
-    result.statusCode = HttpStatus.OK;
-    result.message = 'Updated';
-    return result;
+    return await this.userRepository.save(user);
   }
 
   async checkEmailExisted(email: string): Promise<boolean> {
@@ -163,26 +158,39 @@ export class UserService implements IUserService {
   // Missing handle id user id not existed in register request
   async approveRegisterRequest(
     approveRegisterRequestDto: ApproveRegisterRequestDTO,
-  ): Promise<void> {
-    try {
-      const { userIds } = approveRegisterRequestDto;
+  ): Promise<boolean> {
+    const { userIds } = approveRegisterRequestDto;
 
-      this.userRepository
-        .createQueryBuilder()
-        .update(User)
-        .set({ status: UserStatus.ACTIVE, registerDate: new Date() })
-        .where('userId IN (:...userId)', { userIds })
-        .execute();
-    } catch (error: any) {
-      this.logger.error(
-        `Error approving register users: ${error.message}`,
-        error.stack,
+    const { affected } = await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ status: UserStatus.ACTIVE, registerDate: new Date() })
+      .where('userId IN (:...userIds)', { userIds })
+      .execute();
+
+    if (affected <= 0) return false;
+
+    //Assign MEMBER role for all the register request user after change user status to ACTIVE
+    const startRole = await this.roleRepository.findOne({
+      where: {
+        roleName: Roles.MEMBER,
+      },
+    });
+
+    const accessGrants = userIds.map((userId) => {
+      return new AccessGrant(
+        { userId } as User,
+        startRole,
+        true,
+        'Assigned MEMBER role upon registration approval',
       );
-      throw new InternalServerErrorException(
-        'Failed to approve register users',
-      );
-    }
+    });
+
+    const grantAccesses = await this.accessGrantRepository.save(accessGrants);
+
+    return grantAccesses.length > 0;
   }
+
   // User later for send mail
   // private async handlePostApproval(userIds: string[]): Promise<void> {
   //   try {
@@ -200,21 +208,13 @@ export class UserService implements IUserService {
   async approveLeftRequest(
     approveLeftRequestDto: ApproveLeftRequestDTO,
   ): Promise<void> {
-    try {
-      const { userIds } = approveLeftRequestDto;
+    const { userIds } = approveLeftRequestDto;
 
-      this.userRepository
-        .createQueryBuilder()
-        .update(User)
-        .set({ status: UserStatus.TERMINATED })
-        .where('userId IN (:...userId)', { userIds })
-        .execute();
-    } catch (error: any) {
-      this.logger.error(
-        `Error approving left requests: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Failed to approve left requests');
-    }
+    this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ status: UserStatus.TERMINATED })
+      .where('userId IN (:...userIds)', { userIds })
+      .execute();
   }
 }

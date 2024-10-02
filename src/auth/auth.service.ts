@@ -14,17 +14,16 @@ import { Services } from 'utils/constants';
 import helpers from 'utils/helpers';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RoleStatus } from './entities/enums/role-status.enum';
-import { AccessGrant } from './entities/access-grant';
 import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
 import GrantAccessesResponseDTO from 'src/dtos/auth/responses/grant-accesses-response.dto';
 import GrantAccessesRequestDTO from 'src/dtos/auth/requests/grant-accesses-request.dto';
 import RegisterRequestDTO from 'src/dtos/auth/requests/register-request.dto';
 import { RegisterResponseDTO } from 'src/dtos/auth/responses/register-response.dto';
 import { LoginResponseDTO } from 'src/dtos/auth/responses/login-response.dto';
-import { User } from 'src/users/entities/user.entity';
-import { UserStatus } from './entities/enums/user-status.enum';
 import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
+import { AccessGrant } from 'src/entities/access-grant';
+import { UserStatus } from 'src/entities/enums/user-status.enum';
+import { RoleStatus } from 'src/entities/enums/role-status.enum';
 
 @Injectable()
 export class AuthService implements IAuthService {

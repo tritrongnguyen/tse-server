@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { Role } from './role.entity';
+import { User } from './user.entity';
 
 @Entity({
   name: 'accesses_grant',
@@ -40,4 +40,11 @@ export class AccessGrant {
     length: 100,
   })
   notes: string;
+
+  constructor(user?: User, role?: Role, isGrant?: boolean, notes?: string) {
+    this.user = user;
+    this.role = role;
+    this.isGrant = isGrant;
+    this.notes = notes;
+  }
 }

@@ -7,8 +7,7 @@ export enum Routes {
 export enum Services {
   AUTH = 'AUTH_SERVICE',
   USER = 'USER_SERVICE',
-  ADMIN = 'ADMIN_SERVICE',
-  PERMISSION = 'PERMISSION_SERVICE',
+  LOGGING = 'LOGGING_SERVICE',
 }
 
 export enum SortDirections {

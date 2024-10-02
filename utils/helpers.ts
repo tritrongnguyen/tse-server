@@ -1,5 +1,4 @@
 import * as bcrypt from 'bcrypt';
-import { User } from 'src/users/entities/user.entity';
 
 class Helper {
   public hashPassword(rawPassword: string) {

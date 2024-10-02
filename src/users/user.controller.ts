@@ -28,13 +28,12 @@ import { HttpExceptionFilter } from 'utils/http-exception-filter';
 import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
 import { GetLeftRequestsResponseDTO } from 'src/dtos/users/response/get-left-requests-response.dto';
 import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
+import { ApproveRegisterResponseDTO } from 'src/dtos/users/response/approve-register-response.dto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
 @UseFilters(HttpExceptionFilter)
 export class UserController {
-  private readonly logger = new Logger(UserController.name);
-
   constructor(@Inject(Services.USER) private userService: IUserService) {}
 
   @Get('')
@@ -102,7 +101,16 @@ export class UserController {
   async approveRegisterRequest(
     @Body() approveRegisterRequestDto: ApproveRegisterRequestDTO,
   ) {
-    await this.userService.approveRegisterRequest(approveRegisterRequestDto);
+    const result = await this.userService.approveRegisterRequest(
+      approveRegisterRequestDto,
+    );
+
+    return result
+      ? new ApproveRegisterResponseDTO(HttpStatus.OK, 'Approved successfully')
+      : new ApproveRegisterResponseDTO(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          'Failed to approval',
+        );
   }
 
   @Post('left-request/approve')

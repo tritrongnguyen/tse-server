@@ -1,5 +1,5 @@
 import { ApiResponseDTO } from 'src/dtos';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 
 export class GetLeftRequestsResponseDTO implements ApiResponseDTO {
   statusCode: number;

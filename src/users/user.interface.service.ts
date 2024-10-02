@@ -1,7 +1,4 @@
-import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
-import { User } from './entities/user.entity';
-import UpdateUserResponseDTO from 'src/dtos/users/response/update-user-response-dto';
-import UpdateUserRequestDTO from 'src/dtos/users/requests/update-user-request-dto';
+import { User } from '../entities/user.entity';
 import { SortDirections } from 'utils/constants';
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
@@ -30,15 +27,13 @@ export interface IUserService {
 
   findUserById(userId: string): Promise<User>;
 
-  updateUser(
-    updateUserRequestDto: UpdateUserRequestDTO,
-  ): Promise<UpdateUserResponseDTO>;
+  updateUser(user: User): Promise<User>;
 
   getUserInfoById(userId: string): Promise<GetUserInfoByIdResponseDTO>;
 
   approveRegisterRequest(
     approveRegisterRequestDto: ApproveRegisterRequestDTO,
-  ): Promise<void>;
+  ): Promise<boolean>;
 
   approveLeftRequest(
     approveLeftRequestDto: ApproveLeftRequestDTO,

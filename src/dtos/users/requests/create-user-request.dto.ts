@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
-import { UserStatus } from 'src/auth/entities/enums/user-status.enum';
+import { UserStatus } from 'src/entities/enums/user-status.enum';
 
 export class CreateUserRequestDTO {
   @ApiProperty({

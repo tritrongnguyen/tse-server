@@ -1,4 +1,4 @@
-import { AccessGrant } from 'src/auth/entities/access-grant';
+import { AccessGrant } from 'src/entities/access-grant';
 
 export default class GrantAccessesResponseDTO {
   grantAccesses: AccessGrant[];
