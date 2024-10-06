@@ -5,3 +5,8 @@ export enum UserStatus {
   LEFT_REQUESTING = 'LEFT_REQUESTING',
   TERMINATED = 'TERMINATED',
 }
+
+export enum UserType {
+  STUDENT = 'STUDENT',
+  TEACHER = 'TEACHER',
+}

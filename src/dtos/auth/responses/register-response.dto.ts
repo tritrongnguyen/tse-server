@@ -1,5 +1,5 @@
 import { ApiResponseDTO } from 'src/dtos';
-import { UserStatus } from 'src/entities/enums/user-status.enum';
+import { UserStatus } from 'src/entities/enums/user.enum';
 
 export class RegisterResponseDTO implements ApiResponseDTO {
   statusCode: number;

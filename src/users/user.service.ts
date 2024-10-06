@@ -14,10 +14,10 @@ import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-inf
 import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
 import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
 import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
-import { AccessGrant } from 'src/entities/access-grant';
-import { UserStatus } from 'src/entities/enums/user-status.enum';
+import { AccessGrant } from 'src/entities/access-grant.entity';
 import { Role } from 'src/entities/role.entity';
 import { Roles } from 'utils/security-constants';
+import { UserStatus } from 'src/entities/enums/user.enum';
 
 @Injectable()
 export class UserService implements IUserService {

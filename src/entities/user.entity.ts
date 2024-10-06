@@ -1,9 +1,10 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { UserType } from './enums/user-type.enum';
 import { Faculty } from './enums/faculty.enum';
 import { Exclude } from 'class-transformer';
-import { UserStatus } from './enums/user-status.enum';
-import { AccessGrant } from './access-grant';
+import { UserStatus, UserType } from './enums/user.enum';
+import { AccessGrant } from './access-grant.entity';
+import { MemberGroup } from './member-group.entity';
+import { UserActivity } from './user-activity.entity';
 @Entity({
   name: 'users',
 })
@@ -102,6 +103,16 @@ export class User {
     lazy: true,
   })
   public rolesGrant: Promise<AccessGrant[]>;
+
+  @OneToMany(() => MemberGroup, (memberGroups) => memberGroups.member, {
+    lazy: true,
+  })
+  groupMembers: Promise<MemberGroup[]>;
+
+  @OneToMany(() => UserActivity, (userActivity) => userActivity.user, {
+    lazy: true,
+  })
+  userActivities: Promise<UserActivity[]>;
 
   constructor(
     userId?: string,

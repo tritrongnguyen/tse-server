@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { RoleStatus } from './enums/role-status.enum';
+import { RoleStatus } from './enums/role.enum';
 import { IsNotEmpty } from 'class-validator';
-import { AccessGrant } from './access-grant';
+import { AccessGrant } from './access-grant.entity';
 
 @Entity({
   name: 'roles',

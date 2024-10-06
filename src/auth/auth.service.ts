@@ -21,9 +21,9 @@ import RegisterRequestDTO from 'src/dtos/auth/requests/register-request.dto';
 import { RegisterResponseDTO } from 'src/dtos/auth/responses/register-response.dto';
 import { LoginResponseDTO } from 'src/dtos/auth/responses/login-response.dto';
 import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
-import { AccessGrant } from 'src/entities/access-grant';
-import { UserStatus } from 'src/entities/enums/user-status.enum';
-import { RoleStatus } from 'src/entities/enums/role-status.enum';
+import { AccessGrant } from 'src/entities/access-grant.entity';
+import { UserStatus } from 'src/entities/enums/user.enum';
+import { RoleStatus } from 'src/entities/enums/role.enum';
 
 @Injectable()
 export class AuthService implements IAuthService {

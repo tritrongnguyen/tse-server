@@ -5,8 +5,8 @@ import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { User } from 'src/entities/user.entity';
-import { AccessGrant } from 'src/entities/access-grant';
 import { Role } from 'src/entities/role.entity';
+import { AccessGrant } from 'src/entities/access-grant.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, AccessGrant, Role])],

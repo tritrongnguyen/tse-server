@@ -8,7 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import { Guards } from 'utils/security-constants';
 import { AuthorizationGuard } from './guards/authorization.guard';
-import { AccessGrant } from 'src/entities/access-grant';
+import { AccessGrant } from 'src/entities/access-grant.entity';
 import { Role } from 'src/entities/role.entity';
 
 @Module({
