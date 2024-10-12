@@ -32,7 +32,7 @@ export class UserService implements IUserService {
     private roleRepository: Repository<Role>,
   ) {}
 
-  async getUserInfoById(userId: string): Promise<GetUserInfoByIdResponseDTO> {
+  async getUserInfoById(userId: string): Promise<User> {
     const userFound = await this.userRepository.findOne({
       where: { userId },
     });
@@ -40,11 +40,7 @@ export class UserService implements IUserService {
     if (!userFound)
       throw new NotFoundException(`User with this ID ${userId} not found`);
 
-    return new GetUserInfoByIdResponseDTO(
-      HttpStatus.OK,
-      'User found!',
-      instanceToPlain(userFound),
-    );
+    return userFound;
   }
 
   async getAllUsersPaginated(

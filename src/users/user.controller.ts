@@ -18,7 +18,6 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { RequiredRoles } from 'src/auth/customs';
 import { Roles } from 'utils/security-constants';
 import GetAllUsersResponseDTO from 'src/dtos/users/response/get-all-users-response.dto';
-import { PaginationQuery } from 'utils/custom-types';
 import { EntityPropertyErrorFilter } from './filters/entity-property-error-filter.filter';
 import { GetUserInfoByIdRequestDTO } from 'src/dtos/users/requests/get-user-info-by-id-request.dto';
 import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
@@ -28,6 +27,9 @@ import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-regis
 import { GetLeftRequestsResponseDTO } from 'src/dtos/users/response/get-left-requests-response.dto';
 import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
 import { ApproveRegisterResponseDTO } from 'src/dtos/users/response/approve-register-response.dto';
+import { PaginationQuery } from 'utils/helpers/request-helper';
+import { User } from 'src/entities/user.entity';
+import { instanceToPlain } from 'class-transformer';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -46,7 +48,7 @@ export class UserController {
       size = 15,
       sortBy = 'userId',
       sortDirection = SortDirections.ASC,
-    } = query;
+    } = query || {};
 
     const normalizeSortDirection =
       sortDirection.toLocaleLowerCase() === 'desc'
@@ -70,7 +72,15 @@ export class UserController {
   async getUserInfoById(
     @Param() paramDTO: GetUserInfoByIdRequestDTO,
   ): Promise<GetUserInfoByIdResponseDTO> {
-    return this.userService.getUserInfoById(paramDTO.userId);
+    const userFound: User = await this.userService.getUserInfoById(
+      paramDTO.userId,
+    );
+
+    return new GetUserInfoByIdResponseDTO(
+      HttpStatus.OK,
+      'User found!',
+      instanceToPlain(userFound),
+    );
   }
 
   @Get('registers')

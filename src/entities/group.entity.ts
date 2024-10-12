@@ -1,6 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 import { MemberGroup } from './member-group.entity';
+import { Expose, Transform } from 'class-transformer';
 
 @Entity({
   name: 'groups',
@@ -10,7 +18,7 @@ export class Group {
     name: 'group_id',
     type: 'bigint',
   })
-  groupId: number;
+  readonly groupId: number;
 
   @Column('nvarchar', {
     length: 255,
@@ -39,6 +47,22 @@ export class Group {
   })
   leaderName: string;
 
-  @OneToMany(() => MemberGroup, (memberGroup) => memberGroup.group)
+  @OneToMany(() => MemberGroup, (memberGroup) => memberGroup.group, {
+    eager: true,
+  })
+  @Expose({ name: 'groupMembers' })
+  @Transform(
+    ({ value }) =>
+      value.map((memberGroup: MemberGroup) => {
+        return {
+          user_id: memberGroup.member,
+          status: memberGroup.status,
+          is_leader: memberGroup.isLeader,
+        };
+      }),
+    {
+      toPlainOnly: true,
+    },
+  )
   groupMembers: MemberGroup[];
 }

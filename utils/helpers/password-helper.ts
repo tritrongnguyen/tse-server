@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 
-class Helper {
+class PasswordHelper {
   public hashPassword(rawPassword: string) {
     return bcrypt.hashSync(rawPassword, 10);
   }
@@ -10,4 +10,4 @@ class Helper {
   }
 }
 
-export default new Helper();
+export default new PasswordHelper();

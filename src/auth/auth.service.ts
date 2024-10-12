@@ -11,7 +11,6 @@ import { IAuthService } from './auth.interface.service';
 import { IUserService } from 'src/users/user.interface.service';
 import { JwtService } from '@nestjs/jwt';
 import { Services } from 'utils/constants';
-import helpers from 'utils/helpers';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
@@ -24,6 +23,7 @@ import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-reques
 import { AccessGrant } from 'src/entities/access-grant.entity';
 import { UserStatus } from 'src/entities/enums/user.enum';
 import { RoleStatus } from 'src/entities/enums/role.enum';
+import passwordHelper from 'utils/helpers/password-helper';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -57,7 +57,9 @@ export class AuthService implements IAuthService {
         `This email "${registerUserDto.email}" already existed!!!`,
       );
 
-    const hashedPassword = helpers.hashPassword(registerUserDto.password);
+    const hashedPassword = passwordHelper.hashPassword(
+      registerUserDto.password,
+    );
 
     const createUserDTO = new CreateUserRequestDTO(
       registerUserDto.userId,
@@ -97,7 +99,7 @@ export class AuthService implements IAuthService {
     if (userFound.status !== UserStatus.ACTIVE)
       throw new UnauthorizedException('User may not activate');
 
-    const matchPassword = helpers.comparePassword(
+    const matchPassword = passwordHelper.comparePassword(
       loginDto.password,
       userFound.hashedPassword,
     );

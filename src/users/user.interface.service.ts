@@ -29,7 +29,7 @@ export interface IUserService {
 
   updateUser(user: User): Promise<User>;
 
-  getUserInfoById(userId: string): Promise<GetUserInfoByIdResponseDTO>;
+  getUserInfoById(userId: string): Promise<User>;
 
   approveRegisterRequest(
     approveRegisterRequestDto: ApproveRegisterRequestDTO,

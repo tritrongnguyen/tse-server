@@ -1,4 +1,4 @@
-import { SortDirections } from './constants';
+import { SortDirections } from 'utils/constants';
 
 export type PaginationQuery = {
   size?: number;
