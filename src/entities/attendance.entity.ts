@@ -1,5 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { AttendanceStatus } from './enums/attendance.enum';
+import { Activity } from './activity.entity';
 
 @Entity({ name: 'attendances' })
 export class Attendance {
@@ -56,4 +63,8 @@ export class Attendance {
     name: 'attendance_status',
   })
   attendanceStatus: AttendanceStatus;
+
+  @OneToOne(() => Activity, (activity) => activity.attendance)
+  @JoinColumn({ name: 'activity_id' })
+  activity: Activity;
 }

@@ -9,3 +9,10 @@ export enum ActivityScope {
   INTERNAL = 'INTERNAL',
   EXTERNAL = 'EXTERNAL',
 }
+
+export enum ActivityStatus {
+  PLAN = 'PLAN',
+  OPEN = 'OPEN',
+  CLOSE = 'CLOSE',
+  CANCEL = 'CANCEL',
+}

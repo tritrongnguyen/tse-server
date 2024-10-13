@@ -1,6 +1,11 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ActivityScope, ActivityType } from './enums/activity.enum';
+import {
+  ActivityScope,
+  ActivityStatus,
+  ActivityType,
+} from './enums/activity.enum';
 import { UserActivity } from './user-activity.entity';
+import { Attendance } from './attendance.entity';
 
 @Entity({
   name: 'activities',
@@ -33,6 +38,7 @@ export class Activity {
 
   @Column('datetime', {
     name: 'time_open_register',
+    default: () => 'CURRENT_TIMESTAMP',
     nullable: false,
   })
   timeOpenRegister: Date;
@@ -63,6 +69,13 @@ export class Activity {
   activityType: ActivityType;
 
   @Column('enum', {
+    enum: ActivityStatus,
+    default: ActivityStatus.PLAN,
+    name: 'activity_status',
+  })
+  activityStatus: ActivityStatus;
+
+  @Column('enum', {
     enum: ActivityScope,
     default: ActivityScope.INTERNAL,
     name: 'activity_scope',
@@ -71,4 +84,9 @@ export class Activity {
 
   @OneToMany(() => UserActivity, (userActivity) => userActivity.activity)
   userActivities: Promise<UserActivity[]>;
+
+  @OneToMany(() => Attendance, (attendance) => attendance.activity, {
+    cascade: true,
+  })
+  attendance: Attendance;
 }

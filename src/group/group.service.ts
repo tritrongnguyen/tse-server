@@ -9,14 +9,7 @@ import {
 import { IGroupService } from './group.interface.service';
 import { Group } from 'src/entities/group.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Like,
-  Repository,
-  DataSource,
-  UpdateResult,
-  In,
-  DeleteResult,
-} from 'typeorm';
+import { Like, Repository, DataSource, UpdateResult } from 'typeorm';
 import { Services, SortDirections } from 'utils/constants';
 import { PaginationQuery } from 'utils/helpers/request-helper';
 import { CreateGroupRequestDTO } from 'src/dtos/groups/requests/create-group-request.dto';
