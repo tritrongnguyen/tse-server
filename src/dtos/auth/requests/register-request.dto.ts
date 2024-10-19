@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 
-export default class RegisterRequestDTO {
+export class RegisterRequest {
   @ApiProperty({
     example: 20082681,
     description: 'The user id',

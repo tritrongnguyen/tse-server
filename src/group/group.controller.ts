@@ -1,10 +1,8 @@
-import { GetAllGroupMembersResponseDTO } from './../dtos/groups/responses/get-all-group-members-response.dto';
 import {
   Body,
   Controller,
   Delete,
   Get,
-  HttpCode,
   HttpStatus,
   Inject,
   Param,
@@ -14,28 +12,29 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import { Routes, Services } from 'utils/constants';
-import { IGroupService } from './group.interface.service';
-import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
-import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
-import { HttpExceptionFilter } from 'utils/http-exception-filter';
-import { EntityPropertyErrorFilter } from 'src/users/filters/entity-property-error-filter.filter';
 import { Public, RequiredRoles } from 'src/auth/customs';
+import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import {
+  ApiResponse,
+  PaginatedQuery,
+  PaginatedResponse,
+} from 'src/dtos/common.dto';
+import { AddGroupMembersRequest } from 'src/dtos/groups/requests/add-group-members-request.dto';
+import { ChangeGroupLeaderRequest } from 'src/dtos/groups/requests/change-group-leader-request.dto';
+import { CreateGroupRequest } from 'src/dtos/groups/requests/create-group-request.dto';
+import { RemoveGroupMemberRequest } from 'src/dtos/groups/requests/remove-group-member-request.dto';
+import { AddGroupMembersResponse } from 'src/dtos/groups/responses/add-group-member-response.dto';
+import { CreateGroupResponse } from 'src/dtos/groups/responses/create-group-response.dto';
+import { GetAllGroupMembersResponse } from 'src/dtos/groups/responses/get-all-group-members-response.dto';
+import { GetGroupInfoResponse } from 'src/dtos/groups/responses/get-group-info-response.dto';
+import { GetGroupsByPartialNameResponse } from 'src/dtos/groups/responses/get-groups-by-partial-name-response.dto';
+import { Group } from 'src/entities/group.entity';
+import { EntityPropertyErrorFilter } from 'src/users/filters/entity-property-error-filter.filter';
+import { Routes, Services, SortDirections } from 'utils/constants';
+import { HttpExceptionFilter } from 'utils/http-exception-filter';
 import { Roles } from 'utils/security-constants';
-import { PaginationQuery } from 'utils/helpers/request-helper';
-import { CreateGroupRequestDTO } from 'src/dtos/groups/requests/create-group-request.dto';
-import { CreateGroupResponseDTO } from 'src/dtos/groups/responses/create-group-response.dto';
-import { instanceToPlain } from 'class-transformer';
-import { GetAllGroupsResponseDTO } from 'src/dtos/groups/responses/get-all-groups-response.dto';
-import { GetGroupsByPartialNameResponseDTO } from 'src/dtos/groups/responses/get-groups-by-partial-name-response.dto';
-import { GetGroupInfoResponseDTO } from 'src/dtos/groups/responses/get-group-info-response.dto';
-import { ChangeGroupLeaderRequestDTO } from 'src/dtos/groups/requests/change-group-leader-request.dto';
-import { ChangeGroupLeaderResponseDTO } from 'src/dtos/groups/responses/change-group-leader-response.dto';
-import { AddGroupMembersRequestDTO } from 'src/dtos/groups/requests/add-group-members-request.dto';
-import { IsNumber } from 'class-validator';
-import { AddGroupMembersResponseDTO } from 'src/dtos/groups/responses/add-group-member-response.dto';
-import { RemoveGroupMemberRequestDTO } from 'src/dtos/groups/requests/remove-group-member-request.dto';
-import { RemoveGroupMemberResponseDTO } from 'src/dtos/groups/responses/remove-group-member-response.dto';
+import { IGroupService } from './group.interface.service';
 
 @Controller(Routes.GROUP)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -43,23 +42,33 @@ import { RemoveGroupMemberResponseDTO } from 'src/dtos/groups/responses/remove-g
 export class GroupController {
   constructor(@Inject(Services.GROUP) private groupService: IGroupService) {}
 
-  @Get('')
-  //   @RequiredRoles(Roles.ADMIN)
   @Public()
+  //   @RequiredRoles(Roles.ADMIN)
+  @Get('')
   @UseFilters(EntityPropertyErrorFilter)
   async getAllGroupPaginated(
-    @Query('query') query?: PaginationQuery,
-  ): Promise<GetAllGroupsResponseDTO> {
-    const { groups, pageable } =
-      await this.groupService.getAllGroupPaginated(query);
-    return new GetAllGroupsResponseDTO(
-      HttpStatus.OK,
-      'Get groups successfully',
-      {
-        groups: groups.map((group) => instanceToPlain(group)),
-        pageable,
-      },
+    @Query() query?: PaginatedQuery<Group>,
+  ): Promise<ApiResponse<PaginatedResponse<Group>>> {
+    const {
+      page = 1,
+      size = 10,
+      sortBy = 'groupId',
+      sortDirection = SortDirections.ASC,
+    } = query;
+
+    const normalizeSortDirection =
+      sortDirection.toLocaleLowerCase() === 'desc'
+        ? SortDirections.DESC
+        : (SortDirections.ASC ?? SortDirections.ASC);
+
+    const response = await this.groupService.getAllGroupPaginated(
+      page,
+      size,
+      normalizeSortDirection,
+      sortBy,
     );
+
+    return new ApiResponse(HttpStatus.OK, 'Get groups successfully', response);
   }
 
   @Get('search')
@@ -67,26 +76,26 @@ export class GroupController {
   @RequiredRoles(Roles.ADMIN)
   async getGroupsByPartialName(
     @Query('partialName') partialName: string,
-  ): Promise<GetGroupsByPartialNameResponseDTO> {
+  ): Promise<ApiResponse<GetGroupsByPartialNameResponse>> {
     const groups = await this.groupService.getGroupByPartialName(partialName);
 
-    return new GetGroupsByPartialNameResponseDTO(
+    return new ApiResponse(
       HttpStatus.OK,
-      'Get groups successfully',
-      groups,
+      'Get groups by partial name successfully',
+      new GetGroupsByPartialNameResponse(groups),
     );
   }
 
   @Post('')
   @Public()
   async createGroup(
-    @Body() createGroupRequest: CreateGroupRequestDTO,
-  ): Promise<CreateGroupResponseDTO> {
-    const group = await this.groupService.createGroup(createGroupRequest);
-    return new CreateGroupResponseDTO(
+    @Body() createGroupRequest: CreateGroupRequest,
+  ): Promise<ApiResponse<CreateGroupResponse>> {
+    const response = await this.groupService.createGroup(createGroupRequest);
+    return new ApiResponse(
       HttpStatus.CREATED,
       'Create group successfully',
-      group,
+      response,
     );
   }
 
@@ -95,12 +104,12 @@ export class GroupController {
   async getAllMembers(
     @Param('groupId')
     groupId: number,
-  ): Promise<GetAllGroupMembersResponseDTO> {
+  ): Promise<ApiResponse<GetAllGroupMembersResponse>> {
     const groupMembers = await this.groupService.getAllMemberOfGroup(groupId);
-    return new GetAllGroupMembersResponseDTO(
+    return new ApiResponse(
       HttpStatus.OK,
-      'Get members successfully',
-      groupMembers,
+      'Get all members of group successfully',
+      new GetAllGroupMembersResponse(groupMembers),
     );
   }
 
@@ -108,29 +117,30 @@ export class GroupController {
   @Public()
   async getGroupInfo(
     @Param('groupId') groupId: number,
-  ): Promise<GetGroupInfoResponseDTO> {
-    const group = await this.groupService.getGroupInformation(groupId);
+  ): Promise<GetGroupInfoResponse> {
+    const response = await this.groupService.getGroupInformation(groupId);
 
-    return new GetGroupInfoResponseDTO(
+    return new ApiResponse(
       HttpStatus.OK,
       'Get group information successfully',
-      instanceToPlain(group),
+      response,
     );
   }
 
   @Put('change-leader')
   @Public()
   async changeGroupLeader(
-    @Body() changeGroupLeaderRequestDTO: ChangeGroupLeaderRequestDTO,
-  ): Promise<ChangeGroupLeaderResponseDTO> {
+    @Body() changeGroupLeaderRequestDTO: ChangeGroupLeaderRequest,
+  ): Promise<ApiResponse<boolean>> {
     const isChanged = await this.groupService.changeGroupLeader(
       changeGroupLeaderRequestDTO.groupId,
       changeGroupLeaderRequestDTO.userId,
     );
     if (isChanged) {
-      return new ChangeGroupLeaderResponseDTO(
+      return new ApiResponse(
         HttpStatus.OK,
         'Change group leader successfully',
+        isChanged,
       );
     }
   }
@@ -140,15 +150,15 @@ export class GroupController {
   async addMembersToGroup(
     @Param('groupId')
     groupId: number,
-    @Body() addGroupMembersRequest: AddGroupMembersRequestDTO,
-  ): Promise<AddGroupMembersResponseDTO> {
+    @Body() addGroupMembersRequest: AddGroupMembersRequest,
+  ): Promise<ApiResponse<AddGroupMembersResponse>> {
     const result = await this.groupService.addMembersToGroup(
       groupId,
       addGroupMembersRequest,
     );
 
-    return new AddGroupMembersResponseDTO(
-      HttpStatus.CREATED,
+    return new ApiResponse(
+      HttpStatus.OK,
       'Add members to group successfully',
       result,
     );
@@ -158,23 +168,24 @@ export class GroupController {
   @Delete(':groupId/members')
   async removeMembersFromGroup(
     @Param('groupId') groupId: number,
-    @Body() removeMembersRequest: RemoveGroupMemberRequestDTO,
-  ): Promise<RemoveGroupMemberResponseDTO> {
+    @Body() removeMembersRequest: RemoveGroupMemberRequest,
+  ): Promise<ApiResponse<boolean>> {
     const result = await this.groupService.removeMembersFromGroup(
       groupId,
       removeMembersRequest,
     );
 
     if (result) {
-      return new RemoveGroupMemberResponseDTO(
+      return new ApiResponse(
         HttpStatus.OK,
         'Remove members from group successfully',
+        result,
       );
     }
 
-    return new RemoveGroupMemberResponseDTO(
+    return new ApiResponse(
       HttpStatus.INTERNAL_SERVER_ERROR,
-      'Remove members froom group failed',
+      'Remove members from group failed',
     );
   }
 

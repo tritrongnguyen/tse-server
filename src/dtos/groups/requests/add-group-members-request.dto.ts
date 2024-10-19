@@ -1,12 +1,6 @@
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-} from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from 'class-validator';
 
-export class AddGroupMembersRequestDTO {
+export class AddGroupMembersRequest {
   @IsNotEmpty()
   @IsArray()
   @ArrayNotEmpty()

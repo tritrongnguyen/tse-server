@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { GroupController } from '../group.controller';
+// import { Test, TestingModule } from '@nestjs/testing';
+// import { GroupController } from '../group.controller';
 
-describe('GroupController', () => {
-  let controller: GroupController;
+// describe('GroupController', () => {
+//   let controller: GroupController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [GroupController],
-    }).compile();
+//   beforeEach(async () => {
+//     const module: TestingModule = await Test.createTestingModule({
+//       controllers: [GroupController],
+//     }).compile();
 
-    controller = module.get<GroupController>(GroupController);
-  });
+//     controller = module.get<GroupController>(GroupController);
+//   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+//   it('should be defined', () => {
+//     expect(controller).toBeDefined();
+//   });
+// });

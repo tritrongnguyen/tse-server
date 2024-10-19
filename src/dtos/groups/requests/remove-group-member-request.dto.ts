@@ -6,7 +6,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class RemoveGroupMemberRequestDTO {
+export class RemoveGroupMemberRequest {
   @IsNotEmpty()
   @IsArray()
   @ArrayNotEmpty()

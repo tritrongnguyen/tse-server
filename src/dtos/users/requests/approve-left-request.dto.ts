@@ -1,6 +1,6 @@
 import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from 'class-validator';
 
-export class ApproveLeftRequestDTO {
+export class ApproveLeftRequest {
   @IsNotEmpty()
   @IsArray()
   @ArrayNotEmpty()

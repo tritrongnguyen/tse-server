@@ -11,12 +11,16 @@ import { Group } from 'src/entities/group.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository, DataSource, UpdateResult } from 'typeorm';
 import { Services, SortDirections } from 'utils/constants';
-import { PaginationQuery } from 'utils/helpers/request-helper';
-import { CreateGroupRequestDTO } from 'src/dtos/groups/requests/create-group-request.dto';
 import { MemberGroup } from 'src/entities/member-group.entity';
 import { IUserService } from 'src/users/user.interface.service';
-import { AddGroupMembersRequestDTO } from 'src/dtos/groups/requests/add-group-members-request.dto';
-import { RemoveGroupMemberRequestDTO } from 'src/dtos/groups/requests/remove-group-member-request.dto';
+import { CreateGroupRequest } from 'src/dtos/groups/requests/create-group-request.dto';
+import { CreateGroupResponse } from 'src/dtos/groups/responses/create-group-response.dto';
+import { AddGroupMembersRequest } from 'src/dtos/groups/requests/add-group-members-request.dto';
+import { AddGroupMembersResponse } from 'src/dtos/groups/responses/add-group-member-response.dto';
+import { RemoveGroupMemberRequest } from 'src/dtos/groups/requests/remove-group-member-request.dto';
+import { instanceToPlain } from 'class-transformer';
+import { PaginatedResponse } from 'src/dtos/common.dto';
+import { GroupMemberData } from 'src/dtos/groups/responses/get-all-group-members-response.dto';
 
 @Injectable()
 export class GroupService implements IGroupService {
@@ -38,51 +42,36 @@ export class GroupService implements IGroupService {
     });
   }
 
-  async getAllGroupPaginated(paginatedQuery: PaginationQuery): Promise<{
-    groups: Partial<Group>[];
-    pageable: number;
-  }> {
-    const {
-      page = 1,
-      size = 10,
-      sortBy = 'groupId',
-      sortDirection = SortDirections.ASC,
-    } = paginatedQuery || {};
-
-    const startIndex = (page - 1) * size;
-
-    const normalizeSortDirection =
-      sortDirection.toLocaleLowerCase() === 'desc'
-        ? SortDirections.DESC
-        : (SortDirections.ASC ?? SortDirections.ASC);
+  async getAllGroupPaginated(
+    pageNum?: number,
+    pageSize?: number,
+    sortDirection?: SortDirections,
+    sortBy?: keyof Group,
+  ): Promise<PaginatedResponse<Group>> {
+    const startIndex = (pageNum - 1) * pageSize;
 
     const [groups, count] = await this.groupRepository.findAndCount({
       skip: startIndex,
-      take: size,
+      take: pageSize,
       order: {
-        [sortBy]: normalizeSortDirection,
+        [sortBy]: sortDirection,
       },
     });
-    const pageable = Math.ceil(count / size);
 
-    if (count < startIndex)
-      return {
-        groups: [],
-        pageable: 0,
-      };
+    const pageable = Math.ceil(count / pageSize);
+
+    if (count < startIndex) return new PaginatedResponse(pageable, count, []);
     else {
-      return {
-        groups,
-        pageable,
-      };
+      return new PaginatedResponse(pageable, count, groups);
     }
   }
 
-  async createGroup(createGroupDto: CreateGroupRequestDTO): Promise<Group> {
-    // check group name is existed
+  async createGroup(
+    createGroupRequest: CreateGroupRequest,
+  ): Promise<CreateGroupResponse> {
     const isExisted = await this.groupRepository.exists({
       where: {
-        groupName: createGroupDto.groupName,
+        groupName: createGroupRequest.groupName,
       },
     });
 
@@ -91,14 +80,15 @@ export class GroupService implements IGroupService {
     }
 
     const leader = await this.userService.getUserInfoById(
-      createGroupDto.leaderId,
+      createGroupRequest.leaderId,
     );
 
     const group: Partial<Group> = new Group();
-    group.groupName = createGroupDto.groupName;
-    group.description = createGroupDto.description ?? createGroupDto.groupName;
+    group.groupName = createGroupRequest.groupName;
+    group.description =
+      createGroupRequest.description ?? createGroupRequest.groupName;
     group.leaderName = `${leader.firstName} ${leader.lastName}`;
-    group.memberNum = createGroupDto.memberIds.length + 1;
+    group.memberNum = createGroupRequest.memberIds.length + 1;
 
     const newGroup = await this.groupRepository.save(group);
     const leaderGroup = new MemberGroup();
@@ -111,7 +101,7 @@ export class GroupService implements IGroupService {
         group: newGroup,
         isLeader: true,
       }),
-      ...createGroupDto.memberIds.map(async (memberId) =>
+      ...createGroupRequest.memberIds.map(async (memberId) =>
         this.memberGroupRepository.save({
           member: await this.userService.getUserInfoById(memberId),
           group: newGroup,
@@ -119,10 +109,10 @@ export class GroupService implements IGroupService {
       ),
     ]);
 
-    return newGroup;
+    return new CreateGroupResponse(newGroup);
   }
 
-  async getAllMemberOfGroup(grId: number): Promise<Partial<MemberGroup>[]> {
+  async getAllMemberOfGroup(grId: number): Promise<GroupMemberData[]> {
     const isExisted = await this.groupRepository.exists({
       where: {
         groupId: grId,
@@ -135,9 +125,17 @@ export class GroupService implements IGroupService {
 
     const result = await this.memberGroupRepository
       .createQueryBuilder('mg')
+      .leftJoinAndSelect('mg.member', 'user')
       .where('mg.group_id = :grId', { grId })
-      .getMany();
+      .getMany()
+      .then((groupMembers) =>
+        groupMembers.map((groupMember) => ({
+          ...groupMember,
+          member: instanceToPlain(groupMember.member),
+        })),
+      );
 
+    console.log(result);
     return result;
   }
 
@@ -152,7 +150,7 @@ export class GroupService implements IGroupService {
       throw new NotFoundException('Group not existed');
     }
 
-    return group;
+    return instanceToPlain(group);
   }
 
   async changeGroupLeader(groupId: number, userId: string): Promise<boolean> {
@@ -212,8 +210,8 @@ export class GroupService implements IGroupService {
 
   async addMembersToGroup(
     groupId: number,
-    addGroupMemberRequest: AddGroupMembersRequestDTO,
-  ): Promise<Partial<MemberGroup>[]> {
+    addGroupMemberRequest: AddGroupMembersRequest,
+  ): Promise<AddGroupMembersResponse> {
     return this.dataSource.transaction(async (transactionManager) => {
       const usersAdded: Partial<MemberGroup>[] = [];
       const { userIds } = addGroupMemberRequest;
@@ -245,13 +243,13 @@ export class GroupService implements IGroupService {
         userIds.length,
       );
 
-      return usersAdded;
+      return new AddGroupMembersResponse(usersAdded);
     });
   }
 
   removeMembersFromGroup(
     groupId: number,
-    removeGroupMemberRequest: RemoveGroupMemberRequestDTO,
+    removeGroupMemberRequest: RemoveGroupMemberRequest,
   ): Promise<boolean> {
     return this.dataSource.transaction(async (transactionManager) => {
       const { userIds } = removeGroupMemberRequest;

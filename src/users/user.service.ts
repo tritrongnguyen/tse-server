@@ -1,23 +1,22 @@
 import {
   ConflictException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { IUserService } from './user.interface.service';
-import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { instanceToPlain } from 'class-transformer';
-import { SortDirections } from 'utils/constants';
-import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
-import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
-import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
-import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
+import { PaginatedResponse } from 'src/dtos/common.dto';
+import { ApproveLeftRequest } from 'src/dtos/users/requests/approve-left-request.dto';
+import { ApproveRegisterRequest } from 'src/dtos/users/requests/approve-register-request.dto';
+import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
 import { AccessGrant } from 'src/entities/access-grant.entity';
-import { Role } from 'src/entities/role.entity';
-import { Roles } from 'utils/security-constants';
 import { UserStatus } from 'src/entities/enums/user.enum';
+import { Role } from 'src/entities/role.entity';
+import { Repository } from 'typeorm';
+import { SortDirections } from 'utils/constants';
+import { Roles } from 'utils/security-constants';
+import { User } from '../entities/user.entity';
+import { IUserService } from './user.interface.service';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -48,10 +47,7 @@ export class UserService implements IUserService {
     pageSize: number,
     sortDirection: SortDirections,
     sortBy?: keyof User,
-  ): Promise<{
-    users: User[];
-    pageable: number;
-  }> {
+  ): Promise<PaginatedResponse<Partial<User>>> {
     const startIndex = (pageNum - 1) * pageSize;
 
     const [data, count] = await this.userRepository.findAndCount({
@@ -64,21 +60,16 @@ export class UserService implements IUserService {
     const pageable = Math.ceil(count / pageSize);
 
     if (count < startIndex)
-      return {
-        users: [],
-        pageable: 0,
-      };
+      return new PaginatedResponse<User>(pageable, count, []);
     else {
-      return {
-        users: data,
-        pageable,
-      };
+      const result = data.map((d) => instanceToPlain(d));
+      return new PaginatedResponse<Partial<User>>(pageable, count, result);
     }
   }
 
-  async createUser(createUserDTO: CreateUserRequestDTO): Promise<User> {
+  async createUser(createUserRequest: CreateUserRequest): Promise<User> {
     const { userId, email, firstName, hashedPassword, lastName, status } =
-      createUserDTO;
+      createUserRequest;
 
     const isExisted = await this.userRepository.exists({
       where: [{ userId }, { email }],
@@ -153,9 +144,9 @@ export class UserService implements IUserService {
 
   // Missing handle id user id not existed in register request
   async approveRegisterRequest(
-    approveRegisterRequestDto: ApproveRegisterRequestDTO,
+    approveRegisterRequest: ApproveRegisterRequest,
   ): Promise<boolean> {
-    const { userIds } = approveRegisterRequestDto;
+    const { userIds } = approveRegisterRequest;
 
     const { affected } = await this.userRepository
       .createQueryBuilder()
@@ -202,9 +193,9 @@ export class UserService implements IUserService {
   // }
 
   async approveLeftRequest(
-    approveLeftRequestDto: ApproveLeftRequestDTO,
+    approveLeftRequest: ApproveLeftRequest,
   ): Promise<void> {
-    const { userIds } = approveLeftRequestDto;
+    const { userIds } = approveLeftRequest;
 
     this.userRepository
       .createQueryBuilder()

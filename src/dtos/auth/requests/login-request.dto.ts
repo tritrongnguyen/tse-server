@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 
-export default class LoginRequestDTO {
+export class LoginRequest {
   @ApiProperty({
     example: 'admin',
     description: 'userId existed in the system',

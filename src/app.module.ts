@@ -20,6 +20,10 @@ import { appEntities } from './entities';
       password: process.env.MYSQL_PASSWORD,
       synchronize: true,
       entities: appEntities,
+      extra: {
+        supportBigNumbers: true,
+        bigNumberStrings: false,
+      },
     }),
     AuthModule,
     UsersModule,

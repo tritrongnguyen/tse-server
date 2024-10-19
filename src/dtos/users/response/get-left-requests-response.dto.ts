@@ -1,14 +1,9 @@
-import { ApiResponseDTO } from 'src/dtos';
 import { User } from 'src/entities/user.entity';
 
-export class GetLeftRequestsResponseDTO implements ApiResponseDTO {
-  statusCode: number;
-  message: string;
+export class GetLeftRequestsResponse {
   data?: User[];
 
-  constructor(statusCode: number, message: string, data?: User[]) {
-    this.statusCode = statusCode;
-    this.message = message;
+  constructor(data?: User[]) {
     this.data = data;
   }
 }

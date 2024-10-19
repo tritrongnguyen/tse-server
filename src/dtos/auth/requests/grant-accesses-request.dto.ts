@@ -4,10 +4,9 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
-  ValidateNested,
 } from 'class-validator';
 
-export default class GrantAccessesRequestDTO {
+export class GrantAccessesRequest {
   @IsArray()
   @IsNotEmpty()
   @ArrayNotEmpty()

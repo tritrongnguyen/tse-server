@@ -1,18 +1,13 @@
-import { ApiResponseDTO } from 'src/dtos';
 import { MemberGroup } from 'src/entities/member-group.entity';
+import { User } from 'src/entities/user.entity';
 
-export class GetAllGroupMembersResponseDTO implements ApiResponseDTO {
-  statusCode: number;
-  message: string;
-  data?: Partial<MemberGroup>[];
+export type GroupMemberData = Partial<Omit<MemberGroup, 'member'>> & {
+  member: Partial<User>;
+};
 
-  constructor(
-    statusCode: number,
-    message: string,
-    data?: Partial<MemberGroup>[],
-  ) {
-    this.statusCode = statusCode;
-    this.message = message;
-    this.data = data;
+export class GetAllGroupMembersResponse {
+  members?: GroupMemberData[];
+  constructor(data?: GroupMemberData[]) {
+    this.members = data;
   }
 }

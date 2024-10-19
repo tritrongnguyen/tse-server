@@ -16,7 +16,31 @@ import {
   ActivityType,
 } from 'src/entities/enums/activity.enum';
 
-export class CreateActivityRequestDTO {
+export class CreateActivityRequest {
+  constructor(
+    title: string,
+    description: string,
+    limitPeople: number,
+    timeOpenRegister: Date,
+    timeCloseRegister: Date,
+    startTime: Date,
+    venue: string,
+    activityType: ActivityType,
+    activityStatus: ActivityStatus,
+    activityScope: ActivityScope,
+  ) {
+    this.title = title;
+    this.description = description;
+    this.limitPeople = limitPeople;
+    this.timeOpenRegister = timeOpenRegister;
+    this.timeCloseRegister = timeCloseRegister;
+    this.startTime = startTime;
+    this.venue = venue;
+    this.activityType = activityType;
+    this.activityStatus = activityStatus;
+    this.activityScope = activityScope;
+  }
+
   @IsNotEmpty()
   @IsString()
   title: string;
@@ -36,11 +60,9 @@ export class CreateActivityRequestDTO {
   timeOpenRegister?: Date;
 
   @Type(() => Date)
-  //   @IsNotEmpty()
   timeCloseRegister: Date;
 
   @Type(() => Date)
-  //   @IsNotEmpty()
   startTime: Date;
 
   @IsNotEmpty()

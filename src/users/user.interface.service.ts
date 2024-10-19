@@ -1,25 +1,22 @@
+import { PaginatedResponse } from 'src/dtos/common.dto';
 import { User } from '../entities/user.entity';
 import { SortDirections } from 'utils/constants';
-import { GetUserInfoByIdResponseDTO } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
-import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
-import { ApproveRegisterRequestDTO } from 'src/dtos/users/requests/approve-register-request.dto';
-import { ApproveLeftRequestDTO } from 'src/dtos/users/requests/approve-left-request.dto';
+import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
+import { ApproveRegisterRequest } from 'src/dtos/users/requests/approve-register-request.dto';
+import { ApproveLeftRequest } from 'src/dtos/users/requests/approve-left-request.dto';
 export interface IUserService {
   getAllUsersPaginated(
     pageNum: number,
     pageSize: number,
     sortDirection: SortDirections,
     sortBy?: keyof User,
-  ): Promise<{
-    users: User[];
-    pageable: number;
-  }>;
+  ): Promise<PaginatedResponse<Partial<User>>>;
 
   getRegisterUsers(): Promise<User[]>;
 
   getLeftRequest(): Promise<User[]>;
 
-  createUser(createUserDTO: CreateUserRequestDTO): Promise<User>;
+  createUser(createUser: CreateUserRequest): Promise<User>;
 
   checkUserIdExisted(userId: string): Promise<boolean>;
 
@@ -32,10 +29,8 @@ export interface IUserService {
   getUserInfoById(userId: string): Promise<User>;
 
   approveRegisterRequest(
-    approveRegisterRequestDto: ApproveRegisterRequestDTO,
+    approveRegisterRequest: ApproveRegisterRequest,
   ): Promise<boolean>;
 
-  approveLeftRequest(
-    approveLeftRequestDto: ApproveLeftRequestDTO,
-  ): Promise<void>;
+  approveLeftRequest(approveLeftRequest: ApproveLeftRequest): Promise<void>;
 }

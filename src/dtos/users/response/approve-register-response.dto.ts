@@ -1,13 +1,7 @@
-import { ApiResponseDTO } from 'src/dtos';
-
-export class ApproveRegisterResponseDTO implements ApiResponseDTO {
-  statusCode: number;
-  message: string;
+export class ApproveRegisterResponse {
   data?: any;
 
-  constructor(statusCode?: number, message?: string, data?: any) {
-    this.statusCode = statusCode;
-    this.message = message;
+  constructor(data?: any) {
     this.data = data;
   }
 }

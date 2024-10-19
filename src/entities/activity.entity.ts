@@ -11,6 +11,30 @@ import { Attendance } from './attendance.entity';
   name: 'activities',
 })
 export class Activity {
+  constructor(
+    title: string,
+    description: string,
+    limitPeople: number,
+    timeOpenRegister: Date,
+    timeCloseRegister: Date,
+    startTime: Date,
+    venue: string,
+    activityType: ActivityType,
+    activityStatus: ActivityStatus,
+    activityScope: ActivityScope,
+  ) {
+    this.title = title;
+    this.description = description;
+    this.limitPeople = limitPeople;
+    this.timeOpenRegister = timeOpenRegister;
+    this.timeCloseRegister = timeCloseRegister;
+    this.startTime = startTime;
+    this.venue = venue;
+    this.activityType = activityType;
+    this.activityStatus = activityStatus;
+    this.activityScope = activityScope;
+  }
+
   @PrimaryGeneratedColumn('increment', {
     name: 'activity_id',
     type: 'bigint',
@@ -39,7 +63,7 @@ export class Activity {
   @Column('datetime', {
     name: 'time_open_register',
     default: () => 'CURRENT_TIMESTAMP',
-    nullable: false,
+    // nullable: false,
   })
   timeOpenRegister: Date;
 

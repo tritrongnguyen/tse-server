@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -11,19 +10,17 @@ import { IAuthService } from './auth.interface.service';
 import { IUserService } from 'src/users/user.interface.service';
 import { JwtService } from '@nestjs/jwt';
 import { Services } from 'utils/constants';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import LoginRequestDTO from '../dtos/auth/requests/login-request.dto';
-import GrantAccessesResponseDTO from 'src/dtos/auth/responses/grant-accesses-response.dto';
-import GrantAccessesRequestDTO from 'src/dtos/auth/requests/grant-accesses-request.dto';
-import RegisterRequestDTO from 'src/dtos/auth/requests/register-request.dto';
-import { RegisterResponseDTO } from 'src/dtos/auth/responses/register-response.dto';
-import { LoginResponseDTO } from 'src/dtos/auth/responses/login-response.dto';
-import { CreateUserRequestDTO } from 'src/dtos/users/requests/create-user-request.dto';
-import { AccessGrant } from 'src/entities/access-grant.entity';
+
 import { UserStatus } from 'src/entities/enums/user.enum';
 import { RoleStatus } from 'src/entities/enums/role.enum';
 import passwordHelper from 'utils/helpers/password-helper';
+import { RegisterRequest } from 'src/dtos/auth/requests/register-request.dto';
+import { LoginRequest } from 'src/dtos/auth/requests/login-request.dto';
+import { RegisterResponse } from 'src/dtos/auth/responses/register-response.dto';
+import { LoginResponse } from 'src/dtos/auth/responses/login-response.dto';
+import { GrantAccessesRequest } from 'src/dtos/auth/requests/grant-accesses-request.dto';
+import { GrantAccessesResponse } from 'src/dtos/auth/responses/grant-accesses-response.dto';
+import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -32,41 +29,34 @@ export class AuthService implements IAuthService {
     private userService: IUserService,
 
     private jwtService: JwtService,
-
-    @InjectRepository(AccessGrant)
-    private accessGrantRepository: Repository<AccessGrant>,
   ) {}
 
-  async register(
-    registerUserDto: RegisterRequestDTO,
-  ): Promise<RegisterResponseDTO> {
+  async register(registerUser: RegisterRequest): Promise<RegisterResponse> {
     const userIdExisted = await this.userService.checkUserIdExisted(
-      registerUserDto.userId,
+      registerUser.userId,
     );
     if (userIdExisted)
       throw new ConflictException(
-        `This id "${registerUserDto.userId}" already existed!!!`,
+        `This id "${registerUser.userId}" already existed!!!`,
       );
 
     const emailExisted = await this.userService.checkEmailExisted(
-      registerUserDto.email,
+      registerUser.email,
     );
 
     if (emailExisted)
       throw new ConflictException(
-        `This email "${registerUserDto.email}" already existed!!!`,
+        `This email "${registerUser.email}" already existed!!!`,
       );
 
-    const hashedPassword = passwordHelper.hashPassword(
-      registerUserDto.password,
-    );
+    const hashedPassword = passwordHelper.hashPassword(registerUser.password);
 
-    const createUserDTO = new CreateUserRequestDTO(
-      registerUserDto.userId,
+    const createUserDTO = new CreateUserRequest(
+      registerUser.userId,
       hashedPassword,
-      registerUserDto.email,
-      registerUserDto.firstName,
-      registerUserDto.lastName,
+      registerUser.email,
+      registerUser.firstName,
+      registerUser.lastName,
       UserStatus.PENDING_APPROVAL,
     );
 
@@ -75,32 +65,28 @@ export class AuthService implements IAuthService {
     if (!userCreated)
       throw new InternalServerErrorException('Something went wrong!');
 
-    return new RegisterResponseDTO(
-      HttpStatus.CREATED,
-      'Register successfully',
-      {
-        userId: userCreated.userId,
-        status: userCreated.status,
-      },
-    );
+    return new RegisterResponse({
+      userId: userCreated.userId,
+      status: userCreated.status,
+    });
   }
 
-  async login(loginDto: LoginRequestDTO): Promise<LoginResponseDTO> {
+  async login(loginRequest: LoginRequest): Promise<LoginResponse> {
     const isUserIdExisted = await this.userService.checkUserIdExisted(
-      loginDto.userId,
+      loginRequest.userId,
     );
     if (!isUserIdExisted)
       throw new NotFoundException(
-        `This id ${loginDto.userId} is not existed!!!`,
+        `This id ${loginRequest.userId} is not existed!!!`,
       );
 
-    const userFound = await this.userService.findUserById(loginDto.userId);
+    const userFound = await this.userService.findUserById(loginRequest.userId);
 
     if (userFound.status !== UserStatus.ACTIVE)
       throw new UnauthorizedException('User may not activate');
 
     const matchPassword = passwordHelper.comparePassword(
-      loginDto.password,
+      loginRequest.password,
       userFound.hashedPassword,
     );
 
@@ -121,9 +107,8 @@ export class AuthService implements IAuthService {
       username: userFound.email,
       roles: userRoles,
     };
-    const loginResponse = new LoginResponseDTO();
-    loginResponse.token = await this.jwtService.signAsync(payload);
-    return loginResponse;
+    const token = await this.jwtService.signAsync(payload);
+    return new LoginResponse(token);
   }
 
   logout(): void {
@@ -140,11 +125,10 @@ export class AuthService implements IAuthService {
   }
 
   async grantAccesses(
-    grantAccessRequestDto: GrantAccessesRequestDTO,
-  ): Promise<GrantAccessesResponseDTO> {
+    grantAccessRequest: GrantAccessesRequest,
+  ): Promise<GrantAccessesResponse> {
     try {
-      console.log(grantAccessRequestDto);
-      return new GrantAccessesResponseDTO();
+      return new GrantAccessesResponse(null);
     } catch (error) {
       throw error;
     }

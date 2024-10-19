@@ -8,7 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CreateGroupRequestDTO {
+export class CreateGroupRequest {
   @IsNotEmpty()
   @MinLength(3)
   @MaxLength(50)

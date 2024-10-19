@@ -1,13 +1,8 @@
-import { ApiResponseDTO } from 'src/dtos';
+import { User } from 'src/entities/user.entity';
 
-export class GetUserInfoByIdResponseDTO implements ApiResponseDTO {
-  constructor(statusCode: number, message: string, data?: any) {
-    this.statusCode = statusCode;
-    this.message = message;
-    this.data = data;
+export class GetUserInfoByIdResponse {
+  userInfo: Partial<User>;
+  constructor(user: Partial<User>) {
+    this.userInfo = user;
   }
-
-  statusCode: number;
-  message: string;
-  data?: any;
 }

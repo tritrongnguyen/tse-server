@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class ChangeGroupLeaderRequestDTO {
+export class ChangeGroupLeaderRequest {
   @IsNotEmpty()
   @IsNumber()
   groupId: number;

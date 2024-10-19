@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 import { UserStatus } from 'src/entities/enums/user.enum';
 
-export class CreateUserRequestDTO {
+export class CreateUserRequest {
   @ApiProperty({
     example: 20082681,
     description: "The user's id",
