@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { IGroupService } from './group.interface.service';
 import { Group } from 'src/entities/group.entity';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository, DataSource, UpdateResult } from 'typeorm';
 import { Services, SortDirections } from 'utils/constants';
 import { MemberGroup } from 'src/entities/member-group.entity';
@@ -31,6 +31,8 @@ export class GroupService implements IGroupService {
     private memberGroupRepository: Repository<MemberGroup>,
 
     @Inject(Services.USER) private userService: IUserService,
+
+    @InjectDataSource()
     private dataSource: DataSource,
   ) {}
 

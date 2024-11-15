@@ -9,7 +9,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { SortDirections } from 'utils/constants';
+import { SortDirections } from '../../utils/constants';
 
 export class ApiResponse<T> {
   statusCode: number;

@@ -4,6 +4,7 @@ import { RegisterResponse } from 'src/dtos/auth/responses/register-response.dto'
 import { LoginResponse } from 'src/dtos/auth/responses/login-response.dto';
 import { GrantAccessesRequest } from 'src/dtos/auth/requests/grant-accesses-request.dto';
 import { GrantAccessesResponse } from 'src/dtos/auth/responses/grant-accesses-response.dto';
+import { Role } from '../entities/role.entity';
 
 export interface IAuthService {
   validateUser(): void;
@@ -12,6 +13,7 @@ export interface IAuthService {
   logout(): void;
   getStatus(): void;
   resetPassword(): void;
+  getAllRoles(): Promise<Role[]>;
   grantAccesses(
     grantAccessRequest: GrantAccessesRequest,
   ): Promise<GrantAccessesResponse>;

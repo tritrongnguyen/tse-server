@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
@@ -75,6 +76,18 @@ export class AuthController {
       HttpStatus.OK,
       'Accesses granted successfully',
       grantAccessesResponse,
+    );
+  }
+
+  @Public()
+  // @RequiredRoles(Roles.ADMIN)
+  @Get('roles')
+  async getAllRoles() {
+    const roles = await this.authService.getAllRoles();
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Roles retrieved successfully',
+      roles,
     );
   }
 }

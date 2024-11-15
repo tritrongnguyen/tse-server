@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Inject,
@@ -11,22 +12,22 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
-import { Activity } from 'src/entities/activity.entity';
-import { Routes, Services, SortDirections } from 'utils/constants';
-import { HttpExceptionFilter } from 'utils/http-exception-filter';
-import { IActivityService } from './activity.interface.service';
-import { CreateActivityRequest } from 'src/dtos/activity/requests/create-activity-request.dto';
-import { Public } from 'src/auth/customs';
-import { CreateActivityResponse } from 'src/dtos/activity/responses/create-activity-response.dto';
-import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
-import { GetActivityByIdResponse } from 'src/dtos/activity/responses/get-activity-by-id-repsonse.dto';
-import { GetAllActivitiesPaginatedResponse } from 'src/dtos/activity/responses/get-all-activities-paginated-response.dto';
+
+import { Routes, Services, SortDirections } from '../../utils/constants';
+import { HttpExceptionFilter } from '../../utils/http-exception-filter';
+import { Public } from '../auth/customs';
+import { AuthenticationGuard } from '../auth/guards/authentication.guard';
+import { AuthorizationGuard } from '../auth/guards/authorization.guard';
+import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
+import { CreateActivityResponse } from '../dtos/activity/responses/create-activity-response.dto';
+import { GetActivityByIdResponse } from '../dtos/activity/responses/get-activity-by-id-response.dto';
 import {
   ApiResponse,
   PaginatedQuery,
   PaginatedResponse,
-} from 'src/dtos/common.dto';
+} from '../dtos/common.dto';
+import { Activity } from '../entities/activity.entity';
+import { IActivityService } from './activity.interface.service';
 
 @Controller(Routes.ACTIVITY)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -41,9 +42,7 @@ export class ActivityController {
   @Get('')
   async getActivitiesPaginated(
     @Query() query: PaginatedQuery<Activity>,
-  ): Promise<
-    ApiResponse<PaginatedResponse<GetAllActivitiesPaginatedResponse>>
-  > {
+  ): Promise<ApiResponse<PaginatedResponse<Activity>>> {
     const {
       page = 1,
       size = 10,
@@ -51,9 +50,15 @@ export class ActivityController {
       sortDirection = SortDirections.ASC,
     } = query;
 
-    console.log(page, size, sortBy, sortDirection);
+    const pageable: PaginatedResponse<Activity> =
+      await this.activityService.findAllActivitiesPaginated(
+        page,
+        size,
+        sortBy,
+        sortDirection,
+      );
 
-    return new ApiResponse(HttpStatus.OK, 'Activities found', null);
+    return new ApiResponse(HttpStatus.OK, 'Activities found', pageable);
   }
 
   @Public()
@@ -84,5 +89,24 @@ export class ActivityController {
       'Activity created',
       new CreateActivityResponse(activity),
     );
+  }
+
+  @Public()
+  @Delete(':activityId')
+  async softDeleteActivity(
+    @Param('activityId', ParseIntPipe) activityId: number,
+  ): Promise<ApiResponse<void>> {
+    let httpStatus: HttpStatus = HttpStatus.OK;
+    let message: string = 'Activity deleted!';
+
+    const isDeleted: boolean =
+      await this.activityService.softDelete(activityId);
+
+    if (!isDeleted) {
+      httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = `Internal server error while deleting activity with ID ${activityId}`;
+    }
+
+    return new ApiResponse(httpStatus, message);
   }
 }

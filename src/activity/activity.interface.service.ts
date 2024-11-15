@@ -1,6 +1,6 @@
-import { CreateActivityRequest } from 'src/dtos/activity/requests/create-activity-request.dto';
-import { GetAllActivitiesPaginatedResponse } from 'src/dtos/activity/responses/get-all-activities-paginated-response.dto';
-import { Activity } from 'src/entities/activity.entity';
+import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
+import { PaginatedResponse } from '../dtos/common.dto';
+import { Activity } from '../entities/activity.entity';
 
 export interface IActivityService {
   createActivity(
@@ -8,12 +8,13 @@ export interface IActivityService {
   ): Promise<Activity>;
 
   findActivityById(activityId: number): Promise<Activity>;
+
   findAllActivitiesPaginated(
     page?: number,
     size?: number,
     sortBy?: string,
     sortDirection?: string,
-  ): Promise<GetAllActivitiesPaginatedResponse>;
+  ): Promise<PaginatedResponse<Activity>>;
   updateActivity(activity: Activity): Promise<Activity>;
-  deleteActivity(activityId: number): Promise<Activity>;
+  softDelete(activityId: number): Promise<boolean>;
 }

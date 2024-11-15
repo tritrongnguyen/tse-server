@@ -1,4 +1,4 @@
-import { MemberGroup } from 'src/entities/member-group.entity';
+import { MemberGroup } from '../../../entities/member-group.entity';
 
 export class AddGroupMembersResponse {
   addedMembers?: Partial<MemberGroup>[];

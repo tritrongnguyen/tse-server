@@ -21,12 +21,18 @@ import { LoginResponse } from 'src/dtos/auth/responses/login-response.dto';
 import { GrantAccessesRequest } from 'src/dtos/auth/requests/grant-accesses-request.dto';
 import { GrantAccessesResponse } from 'src/dtos/auth/responses/grant-accesses-response.dto';
 import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Role } from '../entities/role.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
     @Inject(Services.USER)
     private userService: IUserService,
+
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
 
     private jwtService: JwtService,
   ) {}
@@ -122,6 +128,14 @@ export class AuthService implements IAuthService {
   }
   validateUser(): void {
     throw new Error('Method not implemented.');
+  }
+
+  async getAllRoles(): Promise<Role[]> {
+    try {
+      return this.roleRepository.find();
+    } catch (error) {
+      throw error;
+    }
   }
 
   async grantAccesses(

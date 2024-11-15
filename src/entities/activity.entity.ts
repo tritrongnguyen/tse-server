@@ -3,36 +3,50 @@ import {
   ActivityScope,
   ActivityStatus,
   ActivityType,
+  VenueTypes,
 } from './enums/activity.enum';
 import { UserActivity } from './user-activity.entity';
 import { Attendance } from './attendance.entity';
+import { BaseEntity } from './base.entity';
 
 @Entity({
   name: 'activities',
 })
-export class Activity {
+export class Activity extends BaseEntity {
   constructor(
-    title: string,
+    name: string,
     description: string,
-    limitPeople: number,
+    hostName: string,
+    capacity: number,
+    registeredNumber: number,
     timeOpenRegister: Date,
     timeCloseRegister: Date,
-    startTime: Date,
+    occurDate: Date,
+    startTime: string,
+    endTime: string,
     venue: string,
-    activityType: ActivityType,
-    activityStatus: ActivityStatus,
-    activityScope: ActivityScope,
+    venueType?: VenueTypes,
+    activityType?: ActivityType,
+    activityStatus?: ActivityStatus,
+    activityScope?: ActivityScope,
   ) {
-    this.title = title;
+    super();
+    this.name = name;
     this.description = description;
-    this.limitPeople = limitPeople;
+    this.capacity = capacity;
+    this.hostName = hostName;
+    this.registeredNumber = registeredNumber;
+
     this.timeOpenRegister = timeOpenRegister;
     this.timeCloseRegister = timeCloseRegister;
+    this.occurDate = occurDate;
     this.startTime = startTime;
+    this.endTime = endTime;
     this.venue = venue;
     this.activityType = activityType;
     this.activityStatus = activityStatus;
     this.activityScope = activityScope;
+    this.venueType = venueType;
   }
 
   @PrimaryGeneratedColumn('increment', {
@@ -44,9 +58,8 @@ export class Activity {
   @Column('nvarchar', {
     length: 255,
     nullable: false,
-    unique: true,
   })
-  title: string;
+  name: string;
 
   @Column('text', {
     nullable: false,
@@ -56,9 +69,15 @@ export class Activity {
   @Column('int', {
     nullable: false,
     default: 3,
-    name: 'limit_people',
+    name: 'capacity',
   })
-  limitPeople: number;
+  capacity: number;
+
+  @Column('int', {
+    name: 'registered_number',
+    default: 0,
+  })
+  registeredNumber: number;
 
   @Column('datetime', {
     name: 'time_open_register',
@@ -66,24 +85,49 @@ export class Activity {
     // nullable: false,
   })
   timeOpenRegister: Date;
-
   @Column('datetime', {
     name: 'time_close_register',
     nullable: false,
   })
   timeCloseRegister: Date;
 
-  @Column('datetime', {
+  @Column('nvarchar', {
+    length: 100,
+    name: 'host_name',
+    nullable: false,
+  })
+  hostName: string;
+
+  @Column('date', {
+    name: 'occur_date',
+    nullable: false,
+  })
+  occurDate: Date;
+
+  @Column('time', {
     name: 'start_time',
     nullable: false,
   })
-  startTime: Date;
+  startTime: string;
+
+  @Column('time', {
+    name: 'end_time',
+    nullable: false,
+  })
+  endTime: string;
 
   @Column('nvarchar', {
     length: 255,
     nullable: false,
   })
   venue: string;
+
+  @Column('enum', {
+    enum: VenueTypes,
+    default: VenueTypes.OFFLINE,
+    name: 'venue_type',
+  })
+  venueType: string;
 
   @Column('enum', {
     enum: ActivityType,
@@ -94,7 +138,7 @@ export class Activity {
 
   @Column('enum', {
     enum: ActivityStatus,
-    default: ActivityStatus.PLAN,
+    default: ActivityStatus.PLANED,
     name: 'activity_status',
   })
   activityStatus: ActivityStatus;
