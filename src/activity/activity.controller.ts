@@ -19,7 +19,6 @@ import { Public } from '../auth/customs';
 import { AuthenticationGuard } from '../auth/guards/authentication.guard';
 import { AuthorizationGuard } from '../auth/guards/authorization.guard';
 import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
-import { CreateActivityResponse } from '../dtos/activity/responses/create-activity-response.dto';
 import { GetActivityByIdResponse } from '../dtos/activity/responses/get-activity-by-id-response.dto';
 import {
   ApiResponse,
@@ -43,6 +42,7 @@ export class ActivityController {
   async getActivitiesPaginated(
     @Query() query: PaginatedQuery<Activity>,
   ): Promise<ApiResponse<PaginatedResponse<Activity>>> {
+    console.log({ query });
     const {
       page = 1,
       size = 10,
@@ -80,14 +80,13 @@ export class ActivityController {
   @Post('')
   async createActivity(
     @Body() createActivityRequest: CreateActivityRequest,
-  ): Promise<ApiResponse<CreateActivityResponse>> {
-    const activity: Activity = await this.activityService.createActivity(
-      createActivityRequest,
-    );
+  ): Promise<ApiResponse<Partial<Activity>>> {
+    const activity: Partial<Activity> =
+      await this.activityService.createActivity(createActivityRequest);
     return new ApiResponse(
       HttpStatus.CREATED,
-      'Activity created',
-      new CreateActivityResponse(activity),
+      'Activity created successfully',
+      activity,
     );
   }
 

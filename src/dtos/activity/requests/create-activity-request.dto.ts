@@ -11,9 +11,11 @@ import {
   Min,
   MinDate,
   MinLength,
+  registerDecorator,
   Validate,
   ValidateIf,
   ValidationArguments,
+  ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
@@ -23,6 +25,33 @@ import {
   ActivityScope,
   VenueTypes,
 } from '../../../entities/enums/activity.enum';
+
+export function IsGreaterThanOrEqualToday(
+  validationOptions?: ValidationOptions,
+) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'isGreaterThanOrEqualToday',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+          const dateToCheck = new Date(value);
+          dateToCheck.setHours(0, 0, 0, 0); // Reset time to start of day
+
+          return dateToCheck >= today;
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${args.property} must be greater than or equal to today's date`;
+        },
+      },
+    });
+  };
+}
 
 @ValidatorConstraint({ name: 'isTimeAfter', async: false })
 export class IsTimeAfterConstraint implements ValidatorConstraintInterface {
@@ -113,7 +142,7 @@ export class CreateActivityRequest {
   @IsNotEmpty()
   @IsDate()
   @Type(() => Date)
-  @MinDate(new Date(), { message: 'Occurrence date must be in the future' })
+  @IsGreaterThanOrEqualToday()
   occurDate: Date;
 
   @IsNotEmpty({ message: 'Start time is required' })

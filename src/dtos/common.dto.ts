@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
@@ -47,6 +47,7 @@ export class PaginatedQuery<T> {
   @IsOptional()
   @IsEnum(SortDirections)
   @Type(() => String)
+  @Transform(({ value }) => value?.toLowerCase())
   sortDirection: SortDirections;
 
   constructor(
