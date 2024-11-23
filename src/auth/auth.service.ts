@@ -24,6 +24,8 @@ import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.d
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../entities/role.entity';
 import { Repository } from 'typeorm';
+import { PaginatedResponse } from '../dtos/common.dto';
+import { CheckUserExistRequest } from '../dtos/auth/requests/check-user-exist-request.dto';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -36,25 +38,21 @@ export class AuthService implements IAuthService {
 
     private jwtService: JwtService,
   ) {}
+  async checkUserExist(checkUserExist: CheckUserExistRequest): Promise<void> {
+    const { email, userId } = checkUserExist;
+    const userExist = await this.userService.checkUserIdExisted(userId);
+
+    if (userExist) {
+      throw new ConflictException(`MSSV ${userId} đã tồn tại!!!`);
+    }
+
+    const emailExist = await this.userService.checkEmailExisted(email);
+    if (emailExist) {
+      throw new ConflictException(`Email ${email} đã tồn tại!!!`);
+    }
+  }
 
   async register(registerUser: RegisterRequest): Promise<RegisterResponse> {
-    const userIdExisted = await this.userService.checkUserIdExisted(
-      registerUser.userId,
-    );
-    if (userIdExisted)
-      throw new ConflictException(
-        `This id "${registerUser.userId}" already existed!!!`,
-      );
-
-    const emailExisted = await this.userService.checkEmailExisted(
-      registerUser.email,
-    );
-
-    if (emailExisted)
-      throw new ConflictException(
-        `This email "${registerUser.email}" already existed!!!`,
-      );
-
     const hashedPassword = passwordHelper.hashPassword(registerUser.password);
 
     const createUserDTO = new CreateUserRequest(
@@ -83,13 +81,13 @@ export class AuthService implements IAuthService {
     );
     if (!isUserIdExisted)
       throw new NotFoundException(
-        `This id ${loginRequest.userId} is not existed!!!`,
+        `MSSV ${loginRequest.userId} không tồn tại!!!`,
       );
 
     const userFound = await this.userService.findUserById(loginRequest.userId);
 
     if (userFound.status !== UserStatus.ACTIVE)
-      throw new UnauthorizedException('User may not activate');
+      throw new UnauthorizedException('Tài khoản chưa được kích hoạt!!!');
 
     const matchPassword = passwordHelper.comparePassword(
       loginRequest.password,
@@ -97,7 +95,7 @@ export class AuthService implements IAuthService {
     );
 
     if (!matchPassword)
-      throw new UnauthorizedException('ID or password is wrong!!!');
+      throw new UnauthorizedException('MSSV hoặc mật khẩu không chính xác');
 
     const userRoles = await userFound.rolesGrant.then((results) => {
       return results
@@ -130,11 +128,26 @@ export class AuthService implements IAuthService {
     throw new Error('Method not implemented.');
   }
 
-  async getAllRoles(): Promise<Role[]> {
-    try {
-      return this.roleRepository.find();
-    } catch (error) {
-      throw error;
+  async getAllRoles(
+    page?: number,
+    size?: number,
+    sortBy?: string,
+    sortDirection?: string,
+  ): Promise<PaginatedResponse<Role>> {
+    const startIndex = (page - 1) * size;
+    const [data, count] = await this.roleRepository.findAndCount({
+      skip: startIndex,
+      take: size,
+      order: {
+        [sortBy]: sortDirection,
+      },
+    });
+    const pageable = Math.ceil(count / size);
+
+    if (count < startIndex)
+      return new PaginatedResponse<Role>(pageable, count, []);
+    else {
+      return new PaginatedResponse<Role>(pageable, count, data);
     }
   }
 

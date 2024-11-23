@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Inject,
   Post,
+  Query,
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
@@ -15,14 +16,20 @@ import { RegisterRequest } from 'src/dtos/auth/requests/register-request.dto';
 import { GrantAccessesResponse } from 'src/dtos/auth/responses/grant-accesses-response.dto';
 import { LoginResponse } from 'src/dtos/auth/responses/login-response.dto';
 import { RegisterResponse } from 'src/dtos/auth/responses/register-response.dto';
-import { ApiResponse } from 'src/dtos/common.dto';
-import { Routes, Services } from 'utils/constants';
+import {
+  ApiResponse,
+  PaginatedQuery,
+  PaginatedResponse,
+} from 'src/dtos/common.dto';
+import { Routes, Services, SortDirections } from 'utils/constants';
 import { HttpExceptionFilter } from 'utils/http-exception-filter';
 import { Roles } from 'utils/security-constants';
 import { IAuthService } from './auth.interface.service';
 import { Public, RequiredRoles } from './customs';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import { AuthorizationGuard } from './guards/authorization.guard';
+import { Role } from '../entities/role.entity';
+import { CheckUserExistRequest } from '../dtos/auth/requests/check-user-exist-request.dto';
 
 @Controller(Routes.AUTH)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -40,9 +47,18 @@ export class AuthController {
     const registerResponse = await this.authService.register(registerRequest);
     return new ApiResponse(
       HttpStatus.CREATED,
-      'User registered successfully',
+      'Đăng kí thành công, vui lòng chờ xác nhận từ admin!',
       registerResponse,
     );
+  }
+
+  @Public()
+  @Post('register/check-exist')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async checkIfUserExists(
+    @Body() checkExistRequest: CheckUserExistRequest,
+  ): Promise<void> {
+    await this.authService.checkUserExist(checkExistRequest);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -54,7 +70,7 @@ export class AuthController {
     const loginResponse = await this.authService.login(loginRequest);
     return new ApiResponse(
       HttpStatus.OK,
-      'User logged in successfully',
+      'Đăng nhập thành công! \nXin chào!',
       loginResponse,
     );
   }
@@ -82,12 +98,23 @@ export class AuthController {
   @Public()
   // @RequiredRoles(Roles.ADMIN)
   @Get('roles')
-  async getAllRoles() {
-    const roles = await this.authService.getAllRoles();
+  async getAllRoles(
+    @Query() query: PaginatedQuery<Role>,
+  ): Promise<ApiResponse<PaginatedResponse<Role>>> {
+    console.log('Getting all roles');
+
+    const {
+      page = 1,
+      size = 5,
+      sortBy = 'roleId',
+      sortDirection = SortDirections.ASC,
+    } = query;
+    const pageable: PaginatedResponse<Role> =
+      await this.authService.getAllRoles(page, size, sortBy, sortDirection);
     return new ApiResponse(
       HttpStatus.OK,
       'Roles retrieved successfully',
-      roles,
+      pageable,
     );
   }
 }

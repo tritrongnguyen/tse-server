@@ -42,7 +42,6 @@ export class ActivityController {
   async getActivitiesPaginated(
     @Query() query: PaginatedQuery<Activity>,
   ): Promise<ApiResponse<PaginatedResponse<Activity>>> {
-    console.log({ query });
     const {
       page = 1,
       size = 10,

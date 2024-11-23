@@ -12,7 +12,12 @@ export interface IUserService {
     sortBy?: keyof User,
   ): Promise<PaginatedResponse<Partial<User>>>;
 
-  getRegisterUsers(): Promise<User[]>;
+  getRegisterUsers(
+    pageNum: number,
+    pageSize: number,
+    sortDirection: SortDirections,
+    sortBy?: keyof User,
+  ): Promise<PaginatedResponse<Partial<User>>>;
 
   getLeftRequest(): Promise<User[]>;
 

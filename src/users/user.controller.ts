@@ -43,7 +43,7 @@ export class UserController {
   @Get('')
   // @RequiredRoles(Roles.ADMIN, Roles.CORE)
   @UseFilters(EntityPropertyErrorFilter)
-  async showUsersPaginated(
+  async getUsersPaginated(
     @Query() query?: PaginatedQuery<User>,
   ): Promise<ApiResponse<PaginatedResponse<Partial<User>>>> {
     const {
@@ -92,29 +92,48 @@ export class UserController {
   @Get('registers')
   @HttpCode(HttpStatus.OK)
   // @RequiredRoles(Roles.ADMIN)
-  async getRegisterUsers(): Promise<ApiResponse<GetRegisterUsersResponse>> {
-    const response = await this.userService.getRegisterUsers();
+  async getRegisterUsers(
+    @Query() query?: PaginatedQuery<User>,
+  ): Promise<ApiResponse<PaginatedResponse<Partial<User>>>> {
+    const {
+      page = 1,
+      size = 15,
+      sortBy = 'userId',
+      sortDirection = SortDirections.ASC,
+    } = query;
 
-    return new ApiResponse<GetRegisterUsersResponse>(
+    const normalizeSortDirection =
+      sortDirection.toLocaleLowerCase() === 'desc'
+        ? SortDirections.DESC
+        : (SortDirections.ASC ?? SortDirections.ASC);
+
+    const paginatedResponse = await this.userService.getRegisterUsers(
+      page,
+      size,
+      normalizeSortDirection,
+      sortBy,
+    );
+
+    return new ApiResponse<PaginatedResponse<Partial<User>>>(
       HttpStatus.OK,
       'Success',
-      new GetRegisterUsersResponse(response),
+      paginatedResponse,
     );
   }
 
-  @Public()
-  @Get('left-request')
-  @HttpCode(HttpStatus.OK)
-  // @RequiredRoles(Roles.ADMIN)
-  async getLeftRequests(): Promise<ApiResponse<GetLeftRequestsResponse>> {
-    const response = await this.userService.getRegisterUsers();
+  // @Public()
+  // @Get('left-request')
+  // @HttpCode(HttpStatus.OK)
+  // // @RequiredRoles(Roles.ADMIN)
+  // async getLeftRequests(): Promise<ApiResponse<GetLeftRequestsResponse>> {
+  //   const response = await this.userService.getRegisterUsers();
 
-    return new ApiResponse<GetLeftRequestsResponse>(
-      HttpStatus.OK,
-      'Success',
-      new GetLeftRequestsResponse(response),
-    );
-  }
+  //   return new ApiResponse<GetLeftRequestsResponse>(
+  //     HttpStatus.OK,
+  //     'Success',
+  //     new GetLeftRequestsResponse(response),
+  //   );
+  // }
 
   @Public()
   @Post('registers/approve')

@@ -11,7 +11,7 @@ import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.d
 import { AccessGrant } from 'src/entities/access-grant.entity';
 import { UserStatus } from 'src/entities/enums/user.enum';
 import { Role } from 'src/entities/role.entity';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { SortDirections } from 'utils/constants';
 import { Roles } from 'utils/security-constants';
 import { User } from '../entities/user.entity';
@@ -55,6 +55,11 @@ export class UserService implements IUserService {
       take: pageSize,
       order: {
         [sortBy]: sortDirection,
+      },
+      where: {
+        status: Not(
+          In([UserStatus.PENDING_APPROVAL, UserStatus.LEFT_REQUESTING]),
+        ),
       },
     });
     const pageable = Math.ceil(count / pageSize);
@@ -120,15 +125,32 @@ export class UserService implements IUserService {
     });
   }
 
-  async getRegisterUsers(): Promise<User[]> {
-    return await this.userRepository.find({
+  async getRegisterUsers(
+    pageNum: number,
+    pageSize: number,
+    sortDirection: SortDirections,
+    sortBy?: keyof User,
+  ): Promise<PaginatedResponse<Partial<User>>> {
+    const startIndex = (pageNum - 1) * pageSize;
+
+    const [data, count] = await this.userRepository.findAndCount({
+      skip: startIndex,
+      take: pageSize,
+      order: {
+        [sortBy]: sortDirection,
+      },
       where: {
         status: UserStatus.PENDING_APPROVAL,
       },
-      order: {
-        registerDate: SortDirections.DESC,
-      },
     });
+    const pageable = Math.ceil(count / pageSize);
+
+    if (count < startIndex)
+      return new PaginatedResponse<User>(pageable, count, []);
+    else {
+      const result = data.map((d) => instanceToPlain(d));
+      return new PaginatedResponse<Partial<User>>(pageable, count, result);
+    }
   }
 
   async getLeftRequest(): Promise<User[]> {
