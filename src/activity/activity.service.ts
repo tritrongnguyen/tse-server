@@ -3,18 +3,30 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
-import { PaginatedResponse } from '../dtos/common.dto';
+import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
 import { Activity } from '../entities/activity.entity';
 import { IActivityService } from './activity.interface.service';
+import { SearchActivityRequest } from '../dtos/activity/requests/search-activity-request.dto';
+import { User } from '../entities/user.entity';
+import { UserActivity } from '../entities/user-activity.entity';
 
 @Injectable()
 export class ActivityService implements IActivityService {
   constructor(
     @InjectRepository(Activity)
     private activityRepository: Repository<Activity>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+
+    @InjectRepository(UserActivity)
+    private userActivityRepository: Repository<UserActivity>,
+
+    @InjectDataSource()
+    private dataSource: DataSource,
   ) {}
 
   async createActivity(
@@ -83,22 +95,39 @@ export class ActivityService implements IActivityService {
     return activity;
   }
 
-  async findAllActivitiesPaginated(
-    page?: number,
-    size?: number,
-    sortBy?: string,
-    sortDirection?: string,
+  async searchActivityPaginated(
+    searchRequest: SearchActivityRequest,
+    paginationRequest: PaginatedQuery<Activity>,
   ): Promise<PaginatedResponse<Activity>> {
+    const { page = 1, size = 10 } = paginationRequest;
+
     const startIndex = (page - 1) * size;
 
-    const [data, count] = await this.activityRepository.findAndCount({
-      where: { isDeleted: false },
-      skip: startIndex,
-      take: size,
-      order: {
-        [sortBy]: sortDirection,
-      },
-    });
+    const queryBuilder = this.activityRepository.createQueryBuilder('activity');
+    queryBuilder.where('activity.isDeleted = :isDeleted', { isDeleted: false });
+    if (searchRequest.searchText) {
+      queryBuilder.andWhere('activity.name LIKE :searchText', {
+        searchText: `%${searchRequest.searchText}%`,
+      });
+    }
+
+    if (searchRequest.activityTypes && searchRequest.activityTypes.length > 0) {
+      queryBuilder.andWhere('activity.activityType IN (:...activityTypes)', {
+        activityTypes: searchRequest.activityTypes,
+      });
+    }
+
+    if (searchRequest.sortBy) {
+      queryBuilder.orderBy(`activity.${searchRequest.sortBy}`, 'DESC');
+    } else {
+      queryBuilder.orderBy('activity.createdAt', 'DESC');
+    }
+
+    const [data, count] = await queryBuilder
+      .skip(startIndex)
+      .take(size)
+      .getManyAndCount();
+
     const pageable = Math.ceil(count / size);
 
     if (count < startIndex)
@@ -108,22 +137,28 @@ export class ActivityService implements IActivityService {
     }
   }
 
-  async updateActivity(activity: Activity): Promise<Activity> {
+  async updateActivity(
+    activityId: number,
+    activityToUpdate: CreateActivityRequest,
+  ): Promise<Activity> {
     const existedActivity = await this.activityRepository.findOneBy({
-      activityId: activity.activityId,
+      activityId: activityId,
       isDeleted: false,
     });
 
     if (!existedActivity) {
-      throw new NotFoundException(
-        `Activity with ID ${activity.activityId} not found`,
-      );
+      throw new NotFoundException(`Activity with ID ${activityId} not found`);
     }
-    console.log('found');
-    return;
+
+    const noIdActivity: Partial<Activity> = {
+      activityId: existedActivity.activityId,
+      ...activityToUpdate,
+    };
+
+    return await this.activityRepository.save(noIdActivity);
   }
 
-  async softDelete(activityId: number): Promise<boolean> {
+  async softDelete(activityId: number): Promise<void> {
     const result = await this.activityRepository.update(
       {
         activityId,
@@ -138,6 +173,58 @@ export class ActivityService implements IActivityService {
     if (result.affected === 0) {
       throw new NotFoundException(`Activity with ID ${activityId} not found`);
     }
-    return true;
+  }
+
+  async registerRequest(activityId: number, userId: string): Promise<void> {
+    const activity = await this.activityRepository.findOneBy({
+      activityId,
+      isDeleted: false,
+    });
+
+    const userExist = await this.userRepository.exists({
+      where: { userId },
+    });
+
+    if (!userExist) {
+      throw new NotFoundException(`Không tìm thấy user với ID ${userId}`);
+    }
+
+    if (!activity) {
+      throw new NotFoundException(
+        `Không tồn tại hoạt động với ID ${activityId}`,
+      );
+    }
+
+    // check if user already registered
+    const isUserRegistered = await this.userActivityRepository
+      .createQueryBuilder('ua')
+      .where('ua.activity_id = :activityId', { activityId })
+      .andWhere('ua.user_id = :userId', { userId })
+      .getExists();
+
+    if (isUserRegistered) {
+      throw new ConflictException('User đã đăng ký hoạt động này');
+    }
+
+    // register user to activity
+    await this.userActivityRepository.save({
+      activity: { activityId },
+      user: { userId },
+    });
+
+    // update registered number
+    await this.activityRepository.update(
+      { activityId },
+      { registeredNumber: activity.registeredNumber + 1 },
+    );
+  }
+
+  getRegisteredActivityOfUser(userId: string): Promise<Activity[]> {
+    return this.activityRepository
+      .createQueryBuilder('activity')
+      .innerJoin('activity.userActivities', 'userActivities')
+      .where('userActivities.user_id = :userId', { userId })
+      .andWhere('activity.isDeleted = false')
+      .getMany();
   }
 }

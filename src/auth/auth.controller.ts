@@ -101,8 +101,6 @@ export class AuthController {
   async getAllRoles(
     @Query() query: PaginatedQuery<Role>,
   ): Promise<ApiResponse<PaginatedResponse<Role>>> {
-    console.log('Getting all roles');
-
     const {
       page = 1,
       size = 5,

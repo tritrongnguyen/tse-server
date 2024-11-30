@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  InternalServerErrorException,
   Param,
   Post,
   Query,
@@ -21,7 +22,6 @@ import {
   PaginatedResponse,
 } from 'src/dtos/common.dto';
 import { ApproveLeftRequest } from 'src/dtos/users/requests/approve-left-request.dto';
-import { ApproveRegisterRequest } from 'src/dtos/users/requests/approve-register-request.dto';
 import { GetUserInfoByIdRequest } from 'src/dtos/users/requests/get-user-info-by-id-request.dto';
 import { GetLeftRequestsResponse } from 'src/dtos/users/response/get-left-requests-response.dto';
 import GetRegisterUsersResponse from 'src/dtos/users/response/get-register-users-response.dto';
@@ -32,6 +32,7 @@ import { HttpExceptionFilter } from 'utils/http-exception-filter';
 import { Roles } from 'utils/security-constants';
 import { EntityPropertyErrorFilter } from './filters/entity-property-error-filter.filter';
 import { IUserService } from './user.interface.service';
+import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -136,18 +137,17 @@ export class UserController {
   // }
 
   @Public()
-  @Post('registers/approve')
+  @Post('activate')
   @HttpCode(HttpStatus.OK)
-  async approveRegisterRequest(
-    @Body() approveRegisterRequest: ApproveRegisterRequest,
+  async activateUser(
+    @Body() activateUserRequest: ActivateUserRequest,
   ): Promise<ApiResponse<boolean>> {
-    const result = await this.userService.approveRegisterRequest(
-      approveRegisterRequest,
-    );
-
-    return result
-      ? new ApiResponse(HttpStatus.OK, 'Approved successfully')
-      : new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to approval');
+    const result = await this.userService.activateUser(activateUserRequest);
+    if (result) {
+      return new ApiResponse(HttpStatus.OK, 'Kích hoạt thành công');
+    } else {
+      throw new InternalServerErrorException('Kích hoạt thất bại');
+    }
   }
 
   @Public()

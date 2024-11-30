@@ -3,11 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Inject,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseFilters,
   UseGuards,
@@ -27,6 +29,8 @@ import {
 } from '../dtos/common.dto';
 import { Activity } from '../entities/activity.entity';
 import { IActivityService } from './activity.interface.service';
+import { SearchActivityRequest } from '../dtos/activity/requests/search-activity-request.dto';
+import { RegisterActivityRequest } from '../dtos/activity/requests/register-activity.request.dto';
 
 @Controller(Routes.ACTIVITY)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -38,23 +42,15 @@ export class ActivityController {
   ) {}
 
   @Public()
-  @Get('')
-  async getActivitiesPaginated(
+  @Post('/list')
+  async searchActivityPaginated(
     @Query() query: PaginatedQuery<Activity>,
+    @Body() searchActivityRequest: SearchActivityRequest,
   ): Promise<ApiResponse<PaginatedResponse<Activity>>> {
-    const {
-      page = 1,
-      size = 10,
-      sortBy = 'activityId',
-      sortDirection = SortDirections.ASC,
-    } = query;
-
     const pageable: PaginatedResponse<Activity> =
-      await this.activityService.findAllActivitiesPaginated(
-        page,
-        size,
-        sortBy,
-        sortDirection,
+      await this.activityService.searchActivityPaginated(
+        searchActivityRequest,
+        query,
       );
 
     return new ApiResponse(HttpStatus.OK, 'Activities found', pageable);
@@ -94,17 +90,51 @@ export class ActivityController {
   async softDeleteActivity(
     @Param('activityId', ParseIntPipe) activityId: number,
   ): Promise<ApiResponse<void>> {
-    let httpStatus: HttpStatus = HttpStatus.OK;
-    let message: string = 'Activity deleted!';
+    await this.activityService.softDelete(activityId);
+    return new ApiResponse(HttpStatus.OK, 'ok be iu');
+  }
 
-    const isDeleted: boolean =
-      await this.activityService.softDelete(activityId);
+  @Public()
+  @Put(':activityId')
+  @HttpCode(HttpStatus.OK)
+  async updateActivity(
+    @Param('activityId', ParseIntPipe) activityId: number,
+    @Body() updateActivityRequest: CreateActivityRequest,
+  ): Promise<ApiResponse<any>> {
+    const activityUpdated = await this.activityService.updateActivity(
+      activityId,
+      updateActivityRequest,
+    );
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Update successfully',
+      activityUpdated,
+    );
+  }
 
-    if (!isDeleted) {
-      httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = `Internal server error while deleting activity with ID ${activityId}`;
-    }
+  @Public()
+  @Post('/register')
+  async registerActivity(
+    @Body() registerActivityRequest: RegisterActivityRequest,
+  ): Promise<ApiResponse<any>> {
+    console.log({ registerActivityRequest });
+    const { activityId, userId } = registerActivityRequest;
+    await this.activityService.registerRequest(activityId, userId);
 
-    return new ApiResponse(httpStatus, message);
+    return new ApiResponse(HttpStatus.OK, 'Register successfully');
+  }
+
+  @Public()
+  @Get('/registered/:userId')
+  async getRegisteredActivities(
+    @Param('userId') userId: string,
+  ): Promise<ApiResponse<Activity[]>> {
+    const result =
+      await this.activityService.getRegisteredActivityOfUser(userId);
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Get All Registered Activities',
+      result,
+    );
   }
 }

@@ -79,13 +79,13 @@ export class Activity extends BaseEntity {
   })
   registeredNumber: number;
 
-  @Column('datetime', {
+  @Column('date', {
     name: 'time_open_register',
-    default: () => 'CURRENT_TIMESTAMP',
-    // nullable: false,
+    nullable: false,
   })
   timeOpenRegister: Date;
-  @Column('datetime', {
+
+  @Column('date', {
     name: 'time_close_register',
     nullable: false,
   })

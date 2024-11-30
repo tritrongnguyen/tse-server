@@ -4,9 +4,11 @@ import { ActivityService } from './activity.service';
 import { Services } from 'utils/constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Activity } from 'src/entities/activity.entity';
+import { User } from '../entities/user.entity';
+import { UserActivity } from '../entities/user-activity.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Activity])],
+  imports: [TypeOrmModule.forFeature([Activity, User, UserActivity])],
   controllers: [ActivityController],
   providers: [
     {

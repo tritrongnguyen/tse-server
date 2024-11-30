@@ -1,5 +1,6 @@
 import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
-import { PaginatedResponse } from '../dtos/common.dto';
+import { SearchActivityRequest } from '../dtos/activity/requests/search-activity-request.dto';
+import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
 import { Activity } from '../entities/activity.entity';
 
 export interface IActivityService {
@@ -9,12 +10,17 @@ export interface IActivityService {
 
   findActivityById(activityId: number): Promise<Activity>;
 
-  findAllActivitiesPaginated(
-    page?: number,
-    size?: number,
-    sortBy?: string,
-    sortDirection?: string,
+  searchActivityPaginated(
+    searchRequest: SearchActivityRequest,
+    paginationRequest: PaginatedQuery<Activity>,
   ): Promise<PaginatedResponse<Activity>>;
-  updateActivity(activity: Activity): Promise<Activity>;
-  softDelete(activityId: number): Promise<boolean>;
+  updateActivity(
+    activityId: number,
+    activityToUpdate: CreateActivityRequest,
+  ): Promise<Activity>;
+  softDelete(activityId: number): Promise<void>;
+
+  registerRequest(activityId: number, userId: string): Promise<void>;
+
+  getRegisteredActivityOfUser(userId: string): Promise<Activity[]>;
 }

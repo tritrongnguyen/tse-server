@@ -1,9 +1,9 @@
 import { PaginatedResponse } from 'src/dtos/common.dto';
-import { User } from '../entities/user.entity';
-import { SortDirections } from 'utils/constants';
-import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
-import { ApproveRegisterRequest } from 'src/dtos/users/requests/approve-register-request.dto';
 import { ApproveLeftRequest } from 'src/dtos/users/requests/approve-left-request.dto';
+import { ActivateUserRequest } from 'src/dtos/users/requests/approve-register-request.dto';
+import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
+import { SortDirections } from 'utils/constants';
+import { User } from '../entities/user.entity';
 export interface IUserService {
   getAllUsersPaginated(
     pageNum: number,
@@ -33,9 +33,7 @@ export interface IUserService {
 
   getUserInfoById(userId: string): Promise<User>;
 
-  approveRegisterRequest(
-    approveRegisterRequest: ApproveRegisterRequest,
-  ): Promise<boolean>;
+  activateUser(activateUserRequest: ActivateUserRequest): Promise<boolean>;
 
   approveLeftRequest(approveLeftRequest: ApproveLeftRequest): Promise<void>;
 }

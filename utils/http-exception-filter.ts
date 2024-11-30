@@ -36,6 +36,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof BadRequestException) {
       const validationErrors = this.extractValidationErrors(exception);
       if (validationErrors) {
+        this.logger.error(validationErrors);
         return res.status(status).json({
           statusCode: status,
           path: req.url,

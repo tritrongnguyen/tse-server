@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -6,7 +7,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginatedResponse } from 'src/dtos/common.dto';
 import { ApproveLeftRequest } from 'src/dtos/users/requests/approve-left-request.dto';
-import { ApproveRegisterRequest } from 'src/dtos/users/requests/approve-register-request.dto';
 import { CreateUserRequest } from 'src/dtos/users/requests/create-user-request.dto';
 import { AccessGrant } from 'src/entities/access-grant.entity';
 import { UserStatus } from 'src/entities/enums/user.enum';
@@ -17,6 +17,7 @@ import { Roles } from 'utils/security-constants';
 import { User } from '../entities/user.entity';
 import { IUserService } from './user.interface.service';
 import { instanceToPlain } from 'class-transformer';
+import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -165,10 +166,24 @@ export class UserService implements IUserService {
   }
 
   // Missing handle id user id not existed in register request
-  async approveRegisterRequest(
-    approveRegisterRequest: ApproveRegisterRequest,
+  async activateUser(
+    activateUserRequest: ActivateUserRequest,
   ): Promise<boolean> {
-    const { userIds } = approveRegisterRequest;
+    const { userIds } = activateUserRequest;
+
+    // check existed user id in register request
+    const existedUserIds = await this.userRepository.find({
+      where: {
+        userId: In(userIds),
+        status: UserStatus.PENDING_APPROVAL,
+      },
+    });
+
+    if (existedUserIds.length !== userIds.length) {
+      throw new BadRequestException(
+        'Có MSSV không tồn tại trong danh sách đăng ký',
+      );
+    }
 
     const { affected } = await this.userRepository
       .createQueryBuilder()
@@ -191,7 +206,7 @@ export class UserService implements IUserService {
         { userId } as User,
         startRole,
         true,
-        'Assigned MEMBER role upon registration approval',
+        'Assigned MEMBER role after activated',
       );
     });
 
