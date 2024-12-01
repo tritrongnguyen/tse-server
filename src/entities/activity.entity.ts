@@ -81,6 +81,7 @@ export class Activity extends BaseEntity {
 
   @Column('date', {
     name: 'time_open_register',
+    default: () => '(curdate())',
     nullable: false,
   })
   timeOpenRegister: Date;

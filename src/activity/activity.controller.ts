@@ -41,6 +41,12 @@ export class ActivityController {
     private activityService: IActivityService,
   ) {}
 
+  @Get('')
+  @Public()
+  async getCloseActivities(): Promise<Activity[]> {
+    return this.activityService.getClosedActivities();
+  }
+
   @Public()
   @Post('/list')
   async searchActivityPaginated(

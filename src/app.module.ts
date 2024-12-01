@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/user.module';
 import { GroupModule } from './group/group.module';
 import { ActivityModule } from './activity/activity.module';
 import { AttendanceModule } from './attendance/attendance.module';
@@ -10,7 +11,7 @@ import { appEntities } from './entities';
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: '.env' }),
-
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
