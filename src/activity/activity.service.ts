@@ -1,10 +1,11 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, LessThan, Repository } from 'typeorm';
 import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
 import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
 import { Activity } from '../entities/activity.entity';
@@ -12,9 +13,13 @@ import { IActivityService } from './activity.interface.service';
 import { SearchActivityRequest } from '../dtos/activity/requests/search-activity-request.dto';
 import { User } from '../entities/user.entity';
 import { UserActivity } from '../entities/user-activity.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ActivityStatus } from '../entities/enums/activity.enum';
 
 @Injectable()
 export class ActivityService implements IActivityService {
+  private readonly LOGGER = new Logger(ActivityService.name);
+
   constructor(
     @InjectRepository(Activity)
     private activityRepository: Repository<Activity>,
@@ -226,5 +231,71 @@ export class ActivityService implements IActivityService {
       .where('userActivities.user_id = :userId', { userId })
       .andWhere('activity.isDeleted = false')
       .getMany();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async updateActivityStatusCron(): Promise<void> {
+    this.LOGGER.log('Daily update activity status');
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+
+    this.LOGGER.log('Update activity to be open register');
+    await this.activityRepository
+      .createQueryBuilder()
+      .update()
+      .set({
+        activityStatus: ActivityStatus.OPEN_NOW,
+      })
+      .where('time_open_register < :now', { now: startOfToday })
+      .where('activity_status = :status', {
+        status: ActivityStatus.IN_COMING,
+      })
+      .execute();
+
+    this.LOGGER.log('Update activity to be close register');
+    await this.activityRepository
+      .createQueryBuilder()
+      .update()
+      .set({
+        activityStatus: ActivityStatus.CLOSED,
+      })
+      .where('time_close_register < :now', { now: startOfToday })
+      .andWhere('activity_status = (:status)', {
+        status: ActivityStatus.OPEN_NOW,
+      })
+      .execute();
+
+    this.LOGGER.log('Update activity to be finished');
+    await this.activityRepository
+      .createQueryBuilder()
+      .update()
+      .set({
+        activityStatus: ActivityStatus.FINISHED,
+      })
+      .where('occur_date < :now', { now: startOfToday })
+      .andWhere('activity_status = (:status)', {
+        status: ActivityStatus.OPEN_NOW,
+      })
+      .execute();
+  }
+
+  getClosedActivities(): Promise<Activity[]> {
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+
+    return this.activityRepository.find({
+      where: {
+        timeCloseRegister: LessThan(startOfToday),
+        isDeleted: false,
+      },
+    });
   }
 }

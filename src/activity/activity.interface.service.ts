@@ -23,4 +23,8 @@ export interface IActivityService {
   registerRequest(activityId: number, userId: string): Promise<void>;
 
   getRegisteredActivityOfUser(userId: string): Promise<Activity[]>;
+
+  updateActivityStatusCron(): Promise<void>;
+
+  getClosedActivities(): Promise<Activity[]>;
 }

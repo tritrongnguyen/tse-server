@@ -181,7 +181,7 @@ export class CreateActivityRequest {
 
   @IsEnum(ActivityStatus, {
     message:
-      'activityStatus must be one of the following: PLAN, OPEN,CLOSE or CANCEL',
+      'activityStatus must be one of the following: IN_COMING, OPEN_NOW, CLOSE or CANCEL',
   })
   activityStatus?: ActivityStatus;
 }
