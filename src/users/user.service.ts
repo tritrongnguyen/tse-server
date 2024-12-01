@@ -230,15 +230,14 @@ export class UserService implements IUserService {
       );
     }
   
-    // Cập nhật trạng thái của các user này thành REJECTED
+    // xóa user 
     const { affected } = await this.userRepository
       .createQueryBuilder()
-      .update(User)
-      .set({ status: UserStatus.IN_ACTIVE })
+      .delete()
+      .from(User)
       .where('userId IN (:...userIds)', { userIds })
       .execute();
-  
-    return affected > 0;
+      return affected > 0;
   }
   
 
