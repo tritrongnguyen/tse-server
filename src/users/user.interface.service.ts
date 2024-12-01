@@ -35,5 +35,7 @@ export interface IUserService {
 
   activateUser(activateUserRequest: ActivateUserRequest): Promise<boolean>;
 
+  rejectUserRegistration(userIds: string[]): Promise<boolean>;
+  
   approveLeftRequest(approveLeftRequest: ApproveLeftRequest): Promise<void>;
 }

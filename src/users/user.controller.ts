@@ -149,7 +149,27 @@ export class UserController {
       throw new InternalServerErrorException('Kích hoạt thất bại');
     }
   }
-
+  // denied register request
+  @Public()
+  @Post('deny-register')
+  @HttpCode(HttpStatus.OK)
+  async denyRegisterRequest(@Body() body: { userIds: string[] }): Promise<ApiResponse<boolean>> {
+    const { userIds } = body;
+  
+    // Kiểm tra đầu vào: userIds phải là mảng và không được rỗng
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      throw new InternalServerErrorException('Dữ liệu userIds không hợp lệ hoặc rỗng');
+    }
+  
+    // Gọi service để thực hiện logic từ chối
+    const result = await this.userService.rejectUserRegistration(userIds);
+  
+    if (result) {
+      return new ApiResponse(HttpStatus.OK, 'Từ chối đăng ký thành công', true);
+    } else {
+      throw new InternalServerErrorException('Từ chối đăng ký thất bại');
+    }
+  }
   @Public()
   @Post('left-request/approve')
   @HttpCode(HttpStatus.OK)

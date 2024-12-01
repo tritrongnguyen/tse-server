@@ -214,6 +214,34 @@ export class UserService implements IUserService {
 
     return grantAccesses.length > 0;
   }
+  // denined register request
+  async rejectUserRegistration(userIds: string[]): Promise<boolean> {
+    // Tìm các user đang ở trạng thái PENDING_APPROVAL trong danh sách userIds
+    const existedUserIds = await this.userRepository.find({
+      where: {
+        userId: In(userIds),
+        status: UserStatus.PENDING_APPROVAL,
+      },
+    });
+  
+    if (existedUserIds.length !== userIds.length) {
+      throw new BadRequestException(
+        'Có MSSV không tồn tại trong danh sách đăng ký hoặc không ở trạng thái chờ duyệt',
+      );
+    }
+  
+    // Cập nhật trạng thái của các user này thành REJECTED
+    const { affected } = await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ status: UserStatus.IN_ACTIVE })
+      .where('userId IN (:...userIds)', { userIds })
+      .execute();
+  
+    return affected > 0;
+  }
+  
+
 
   // User later for send mail
   // private async handlePostApproval(userIds: string[]): Promise<void> {
