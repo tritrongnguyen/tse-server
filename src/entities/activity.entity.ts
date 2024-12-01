@@ -138,7 +138,7 @@ export class Activity extends BaseEntity {
 
   @Column('enum', {
     enum: ActivityStatus,
-    default: ActivityStatus.PLANED,
+    default: ActivityStatus.IN_COMING,
     name: 'activity_status',
   })
   activityStatus: ActivityStatus;

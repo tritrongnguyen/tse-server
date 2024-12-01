@@ -10,10 +10,11 @@ export enum ActivityScope {
 }
 
 export enum ActivityStatus {
-  PLANED = 'PLANED',
-  OPENED = 'OPENED',
+  IN_COMING = 'IN_COMING',
+  OPEN_NOW = 'OPEN_NOW',
   CLOSED = 'CLOSED',
   CANCELED = 'CANCELED',
+  FINISHED = 'FINISHED',
 }
 
 export enum VenueTypes {
