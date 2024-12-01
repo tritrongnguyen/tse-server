@@ -86,8 +86,11 @@ export class AuthService implements IAuthService {
 
     const userFound = await this.userService.findUserById(loginRequest.userId);
 
-    if (userFound.status !== UserStatus.ACTIVE)
-      throw new UnauthorizedException('Tài khoản chưa được kích hoạt!!!');
+      // Kiểm tra trạng thái
+      if (![UserStatus.ACTIVE, UserStatus.LEFT_REQUESTING].includes(userFound.status)) {
+        throw new UnauthorizedException('Tài khoản chưa được kích hoạt hoặc không hợp lệ!!!');
+      }
+
 
     const matchPassword = passwordHelper.comparePassword(
       loginRequest.password,

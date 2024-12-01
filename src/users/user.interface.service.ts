@@ -38,4 +38,11 @@ export interface IUserService {
   rejectUserRegistration(userIds: string[]): Promise<boolean>;
   
   approveLeftRequest(approveLeftRequest: ApproveLeftRequest): Promise<void>;
+
+  requestLeft(userId: string): Promise<void>;
+
+  getLeftRequestingUsers(): Promise<User[]>;
+  
+  rejectLeftRequestingUsers(userIds: string[]): Promise<void>;
+
 }

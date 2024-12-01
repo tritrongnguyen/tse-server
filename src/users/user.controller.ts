@@ -176,4 +176,28 @@ export class UserController {
   async approveLeftRequest(@Body() approveLeftRequestDto: ApproveLeftRequest) {
     await this.userService.approveLeftRequest(approveLeftRequestDto);
   }
+
+  @Public()
+  @Post('left-request/reject')
+  @HttpCode(HttpStatus.OK)
+  async rejectLeftRequestingUsers(@Body() body: { userIds: string[] }) {
+   await this.userService.rejectLeftRequestingUsers(body.userIds);
+  }
+// yêu cầu rời khỏi clb
+  @Public()
+  @Post(':userId/request-left')
+  @HttpCode(HttpStatus.OK)
+  async requestLeft(@Param('userId') userId: string) {
+    await this.userService.requestLeft(userId);
+  }
+
+  @Public()
+  @Get('getleft-requesting')
+  @HttpCode(HttpStatus.OK)
+  async getLeftRequestingUsers(): Promise<ApiResponse<User[]>> {
+    const users = await this.userService.getLeftRequestingUsers();
+    return new ApiResponse(HttpStatus.OK, 'Success', users);
+  }
+
+
 }

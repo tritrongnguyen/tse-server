@@ -217,12 +217,14 @@ export class UserService implements IUserService {
   // denined register request
   async rejectUserRegistration(userIds: string[]): Promise<boolean> {
     // Tìm các user đang ở trạng thái PENDING_APPROVAL trong danh sách userIds
+    console.log(userIds)
     const existedUserIds = await this.userRepository.find({
       where: {
         userId: In(userIds),
         status: UserStatus.PENDING_APPROVAL,
       },
     });
+
   
     if (existedUserIds.length !== userIds.length) {
       throw new BadRequestException(
@@ -267,4 +269,38 @@ export class UserService implements IUserService {
       .where('userId IN (:...userIds)', { userIds })
       .execute();
   }
+  // yêu câu rời nhóm của người dùng
+  async requestLeft(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: {
+        userId: userId,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    user.status = UserStatus.LEFT_REQUESTING;
+    await this.userRepository.save(user);
+  }
+  // get user yêu cầu rời nhóm
+  async getLeftRequestingUsers(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: {
+        status: UserStatus.LEFT_REQUESTING,
+      },
+    });
+  }
+  // từ chối yêu cầu rời nhóm
+  async rejectLeftRequestingUsers(userIds: string[]): Promise<void> {
+    await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ status: UserStatus.ACTIVE })
+      .where('userId IN (:...userIds)', { userIds })
+      .execute();
+  }
+
 }
