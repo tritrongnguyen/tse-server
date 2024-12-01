@@ -229,8 +229,7 @@ export class UserService implements IUserService {
         'Có MSSV không tồn tại trong danh sách đăng ký hoặc không ở trạng thái chờ duyệt',
       );
     }
-  
-    // xóa user 
+  // xóa user đang ở trạng thái PENDING_APPROVAL trong danh sách userIds
     const { affected } = await this.userRepository
       .createQueryBuilder()
       .delete()
