@@ -8,6 +8,7 @@ import { GroupModule } from './group/group.module';
 import { ActivityModule } from './activity/activity.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { appEntities } from './entities';
+import { MailerModule } from '@nestjs-modules/mailer';
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: '.env' }),
@@ -31,6 +32,21 @@ import { appEntities } from './entities';
     GroupModule,
     ActivityModule,
     AttendanceModule,
+    // mail
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        },
+      },
+      defaults: {
+        from: '"No Reply" <no-reply@localhost>',
+      },
+    }),
   ],
   controllers: [],
   providers: [],

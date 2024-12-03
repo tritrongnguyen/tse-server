@@ -302,5 +302,13 @@ export class UserService implements IUserService {
       .where('userId IN (:...userIds)', { userIds })
       .execute();
   }
+  // get user bằng userId
+  async getUserById(userId: string): Promise<User> {
+    return await this.userRepository.findOne({
+      where: {
+        userId: userId,
+      },
+    });
+  }
 
 }

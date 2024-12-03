@@ -44,5 +44,5 @@ export interface IUserService {
   getLeftRequestingUsers(): Promise<User[]>;
   
   rejectLeftRequestingUsers(userIds: string[]): Promise<void>;
-
+  getUserById(userId: string): Promise<User>;
 }
