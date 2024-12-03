@@ -143,4 +143,14 @@ export class ActivityController {
       result,
     );
   }
+
+   // get danh sách thành viên tham dự hoạt động
+  @Public()
+  @Get(':activityId/participants')
+  async getParticipants(
+    @Param('activityId', ParseIntPipe) activityId: number,
+  ): Promise<ApiResponse<any>> {
+    const result = await this.activityService.getParticipants(activityId);
+    return new ApiResponse(HttpStatus.OK, 'Get all participants', result);
+  }
 }

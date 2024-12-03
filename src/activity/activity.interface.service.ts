@@ -1,3 +1,4 @@
+import { User } from 'src/entities/user.entity';
 import { CreateActivityRequest } from '../dtos/activity/requests/create-activity-request.dto';
 import { SearchActivityRequest } from '../dtos/activity/requests/search-activity-request.dto';
 import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
@@ -27,4 +28,6 @@ export interface IActivityService {
   updateActivityStatusCron(): Promise<void>;
 
   getClosedActivities(): Promise<Activity[]>;
+
+  getParticipants(activityId: number): Promise<User[]>;
 }

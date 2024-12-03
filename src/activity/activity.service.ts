@@ -298,4 +298,21 @@ export class ActivityService implements IActivityService {
       },
     });
   }
+  // get danh sách thành viên tham dự hoạt động
+  async getParticipants(activityId: number): Promise<User[]> {
+    const activity = await this.activityRepository.findOneBy({
+      activityId,
+      isDeleted: false,
+    });
+
+    if (!activity) {
+      throw new NotFoundException(`Activity with ID ${activityId} not found`);
+    }
+
+    return this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.userActivities', 'userActivities')
+      .where('userActivities.activity_id = :activityId', { activityId })
+      .getMany();
+  }
 }
