@@ -268,6 +268,14 @@ export class UserController {
     const users = await this.userService.getLeftRequestingUsers();
     return new ApiResponse(HttpStatus.OK, 'Success', users);
   }
+  // cập nhật user
+  @Public()
+  @Post('updateUser')
+  @HttpCode(HttpStatus.OK)
+  async updateUser(@Body() user: User) {
+    await this.userService.updateUser(user);
+    // thông báo cập nhật thành công
+  }
 
   // @Public()
   // @Get('getMail')

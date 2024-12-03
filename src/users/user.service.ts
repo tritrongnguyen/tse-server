@@ -97,7 +97,18 @@ export class UserService implements IUserService {
         userId: user.userId,
       },
     });
-
+    // console.log(isExisted)
+    // // check email xem có trùng k
+    // const isEmailExisted = await this.userRepository.exists({
+    //   where: {
+    //     email: user.email,
+    //     userId: Not(user.userId), // Loại trừ chính user đang được cập nhật
+    //   },      
+    // });
+    // console.log(user.email)
+    // console.log(isEmailExisted)
+    // if (isEmailExisted)
+    //   throw new ConflictException(`Email ${user.email} already existed!`);
     if (!isExisted)
       throw new NotFoundException(
         `User with ID ${user.userId} doesn't existed`,
@@ -310,5 +321,6 @@ export class UserService implements IUserService {
       },
     });
   }
+ 
 
 }
