@@ -276,6 +276,13 @@ export class UserController {
     await this.userService.updateUser(user);
     // thông báo cập nhật thành công
   }
+  // update password
+  @Public()
+  @Post('updatePassword')
+  @HttpCode(HttpStatus.OK)
+  async updatePassword(@Body() body: { userId: string; oldPassword: string; newPassword: string }) {
+    await this.userService.updatePassword(body.userId, body.oldPassword, body.newPassword);
+  }
 
   // @Public()
   // @Get('getMail')

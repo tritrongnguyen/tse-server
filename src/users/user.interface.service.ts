@@ -45,4 +45,7 @@ export interface IUserService {
   
   rejectLeftRequestingUsers(userIds: string[]): Promise<void>;
   getUserById(userId: string): Promise<User>;
+updatePassword(userId: string, oldPassword: string, newPassword: string): Promise<User>;
+ 
+
 }

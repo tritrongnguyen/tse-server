@@ -18,6 +18,7 @@ import { User } from '../entities/user.entity';
 import { IUserService } from './user.interface.service';
 import { instanceToPlain } from 'class-transformer';
 import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
+import passwordHelper from 'utils/helpers/password-helper';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -320,6 +321,45 @@ export class UserService implements IUserService {
         userId: userId,
       },
     });
+  }
+  // cập nhật mật khẩu có mã hóa , kiểm tra mật khẩu mới có trùng mật khẩu cũ không
+  async updatePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<User> {
+    // Tìm user theo ID
+    const user = await this.userRepository.findOne({
+      where: { userId: userId },
+    });
+  
+    // Nếu không tìm thấy user, ném lỗi NotFoundException
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+  
+    // Kiểm tra mật khẩu cũ
+    const isOldPasswordValid = await passwordHelper.comparePassword(
+      oldPassword,
+      user.hashedPassword,
+    );
+  
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('Mật khẩu cũ không chính xác');
+    }
+    // kiểm tra mật khẩu mới có trùng với mk cũ không
+    if (oldPassword === newPassword) {
+      throw new BadRequestException('Mật khẩu mới phải khác mật khẩu cũ');
+    }
+  
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await passwordHelper.hashPassword(newPassword);
+  
+    // Cập nhật mật khẩu đã mã hóa
+    user.hashedPassword = hashedPassword;
+  
+    // Lưu thông tin user đã cập nhật
+    return await this.userRepository.save(user);
   }
  
 

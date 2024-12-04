@@ -30,4 +30,10 @@ export interface IActivityService {
   getClosedActivities(): Promise<Activity[]>;
 
   getParticipants(activityId: number): Promise<User[]>;
+  getActivitiesInMonth(month: number): Promise<Activity[]>;
+  getRegisteredUsersInMonth(month: number): Promise<User[]>;
+
+  getTopActiveUsersInMonth(month: number): Promise<User[]>;
+  
+
 }

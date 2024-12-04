@@ -315,4 +315,63 @@ export class ActivityService implements IActivityService {
       .where('userActivities.activity_id = :activityId', { activityId })
       .getMany();
   }
+  // thống kê tất cả các hoạt động trong tháng
+  async getActivitiesInMonth(month: number): Promise<Activity[]> {
+    const startDate = new Date(new Date().getFullYear(), month - 1, 1);  // Ngày bắt đầu của tháng
+    const endDate = new Date(new Date().getFullYear(), month, 0);  // Ngày cuối cùng của tháng
+  
+    const activities = await this.activityRepository
+      .createQueryBuilder('activity')
+      .where('activity.isDeleted = :isDeleted', { isDeleted: false })
+      .andWhere('activity.occurDate >= :startDate', { startDate: startDate.toISOString() })
+      .andWhere('activity.occurDate <= :endDate', { endDate: endDate.toISOString() })
+      .getMany();
+  
+    return activities;
+  }
+  // thống kê tất cả người đăng ký vào club trong tháng, trang thái status = active
+  async getRegisteredUsersInMonth(month: number): Promise<User[]> {
+    const startDate = new Date(new Date().getFullYear(), month - 1, 1);  // Ngày bắt đầu của tháng
+    const endDate = new Date(new Date().getFullYear(), month, 0);  // Ngày cuối cùng của tháng
+  
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.status = :status', { status: 'active' })
+      .andWhere('user.registerDate >= :startDate', { startDate: startDate.toISOString() })
+      .andWhere('user.registerDate <= :endDate', { endDate: endDate.toISOString() })
+      .getMany();
+  
+    return users;
+  }
+  // lọc ra danh sách người tham gia hoạt động tích cực nhất
+    // Lấy danh sách top thành viên tham gia hoạt động tích cực nhất trong một tháng (mặc định là năm hiện tại)
+    
+  async getTopActiveUsersInMonth(month: number): Promise<User[]> {
+    const currentYear = new Date().getFullYear(); // Năm hiện tại
+    const startDate = new Date(currentYear, month - 1, 1); // Ngày đầu tiên của tháng
+    const endDate = new Date(currentYear, month, 0); // Ngày cuối cùng của tháng
+  
+    // Query để lấy danh sách người dùng và số lượng hoạt động của họ trong tháng
+    const users = await this.userActivityRepository
+      .createQueryBuilder('userActivity')
+      .innerJoin('userActivity.activity', 'activity') // Kết nối với bảng activity
+      .innerJoin('userActivity.user', 'user') // Kết nối với bảng user
+      .select('user.userId', 'userId') // Lấy ID của người dùng
+      .addSelect('COUNT(userActivity.activity_id)', 'activityCount') // Đếm số lượng hoạt động
+      .where('activity.occurDate >= :startDate', { startDate }) // Lọc theo ngày bắt đầu
+      .andWhere('activity.occurDate <= :endDate', { endDate }) // Lọc theo ngày kết thúc
+      .groupBy('user.userId') // Nhóm theo ID người dùng
+      .orderBy('activityCount', 'DESC') // Sắp xếp theo số lượng hoạt động (giảm dần)
+      .getRawMany();
+  
+    return users;
+  }
+    
+  
+
+  
+  
+
+
+
 }

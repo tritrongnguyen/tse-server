@@ -153,4 +153,41 @@ export class ActivityController {
     const result = await this.activityService.getParticipants(activityId);
     return new ApiResponse(HttpStatus.OK, 'Get all participants', result);
   }
+  // thông kế tât cả hoạt động trong tháng
+  @Public()
+  @Get('/activities-in-month/:month')
+  async getActivitiesInMonth(
+    @Param('month', ParseIntPipe) month: number,
+  ): Promise<ApiResponse<any>> {
+    const result = await this.activityService.getActivitiesInMonth(month);
+    return new ApiResponse(HttpStatus.OK, 'Get all activities in month', result);
+  }
+  // thống kê số lượng người tham gia vào clb trong tháng
+  @Public()
+  @Get('/registered-users-in-month/:month')
+  async getRegisteredUsersInMonth(
+    @Param('month', ParseIntPipe) month: number,
+  ): Promise<ApiResponse<any>> {
+    const result = await this.activityService.getRegisteredUsersInMonth(month);
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Get all registered users in month',
+      result,
+    );
+  }
+
+  // thống kê top người tham gia nhiều nhất trong tháng
+  @Public()
+  @Get('/top-users-in-month/:month')
+  async getTopActiveUsersInMonth(
+    @Param('month', ParseIntPipe) month: number,
+  ): Promise<ApiResponse<any>> {
+    const result = await this.activityService.getTopActiveUsersInMonth(month);
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Get top users in month',
+      result,
+    );
+  }
+
 }
