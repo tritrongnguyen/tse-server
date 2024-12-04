@@ -67,7 +67,6 @@ export class AuthController {
   async login(
     @Body() loginRequest: LoginRequest,
   ): Promise<ApiResponse<LoginResponse>> {
-    console.log({ loginRequest });
     const loginResponse = await this.authService.login(loginRequest);
     return new ApiResponse(
       HttpStatus.OK,

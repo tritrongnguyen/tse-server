@@ -5,6 +5,7 @@ export enum Routes {
   ACTIVITY = '/activities',
   POINT = '/points',
   ATTENDANCE = '/attendances',
+  QUESTION = '/questions',
 }
 
 export enum Services {
@@ -14,6 +15,7 @@ export enum Services {
   ACTIVITY = 'ACTIVITY_SERVICE',
   POINT = 'POINT_SERVICE',
   ATTENDANCE = 'ATTENDANCE_SERVICE',
+  QUESTION = 'QUESTION_SERVICE',
 }
 
 export enum SortDirections {

@@ -9,6 +9,17 @@ import { ActivityModule } from './activity/activity.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { appEntities } from './entities';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { QnaCategoriesModule } from './qna-categories/qna-categories.module';
+import { QuestionsModule } from './questions/questions.module';
+import { AnswersModule } from './answers/answers.module';
+import { CommentsModule } from './comments/comments.module';
+import { VotesModule } from './votes/votes.module';
+import { TagsController } from './tags/tags.controller';
+import { TagsService } from './tags/tags.service';
+import { TagsModule } from './tags/tags.module';
+import { QuestionTagsModule } from './question-tags/question-tags.module';
+import { QuestionTagsController } from './question-tags/question-tags.controller';
+import { QuestionTagsService } from './question-tags/question-tags.service';
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: '.env' }),
@@ -47,8 +58,15 @@ import { MailerModule } from '@nestjs-modules/mailer';
         from: '"No Reply" <no-reply@localhost>',
       },
     }),
+    QnaCategoriesModule,
+    QuestionsModule,
+    AnswersModule,
+    CommentsModule,
+    VotesModule,
+    TagsModule,
+    QuestionTagsModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [TagsController, QuestionTagsController],
+  providers: [TagsService, QuestionTagsService],
 })
 export class AppModule {}

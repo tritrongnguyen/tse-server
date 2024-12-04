@@ -13,6 +13,12 @@ export abstract class BaseEntity {
   @Column({ default: false, nullable: true })
   isDeleted: boolean;
 
+  @Column({ nullable: true })
+  createdBy: string;
+
+  @Column({ nullable: true })
+  updatedBy: string;
+
   constructor(createdAt?: Date, updatedAt?: Date) {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
