@@ -44,8 +44,13 @@ export interface IUserService {
   getLeftRequestingUsers(): Promise<User[]>;
   
   rejectLeftRequestingUsers(userIds: string[]): Promise<void>;
+
   getUserById(userId: string): Promise<User>;
+
 updatePassword(userId: string, oldPassword: string, newPassword: string): Promise<User>;
- 
+
+getUserByEmail(email: string): Promise<User>;
+
+resetPassword(userId: string, newPassword: string): Promise<User>;
 
 }

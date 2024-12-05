@@ -34,6 +34,7 @@ import { EntityPropertyErrorFilter } from './filters/entity-property-error-filte
 import { IUserService } from './user.interface.service';
 import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import * as crypto from 'crypto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
@@ -283,6 +284,42 @@ export class UserController {
   async updatePassword(@Body() body: { userId: string; oldPassword: string; newPassword: string }) {
     await this.userService.updatePassword(body.userId, body.oldPassword, body.newPassword);
   }
+
+  
+
+@Public()
+@Post('forgot-password')
+@HttpCode(HttpStatus.OK)
+async forgotPassword(@Body('email') email: string): Promise<{ message: string }> {
+  // Kiểm tra xem email có tồn tại trong hệ thống không
+  const user = await this.userService.getUserByEmail(email);
+  if (!user) {
+    throw new InternalServerErrorException('Email không tồn tại trong hệ thống');
+  }
+
+  // Tạo mật khẩu mới ngẫu nhiên (6 ký tự)
+  const newPassword = crypto.randomBytes(3).toString('hex'); // 6 ký tự ngẫu nhiên
+  console.log(user.hashedPassword);
+  // Cập nhật mật khẩu mới trong cơ sở dữ liệu
+  await this.userService.resetPassword(user.email, newPassword);
+ 
+
+  // Gửi email chứa mật khẩu mới
+  await this.mailerService.sendMail({
+    to: email, // Người nhận
+    subject: 'Khôi phục mật khẩu - TSE CLUB', // Tiêu đề
+    html: `<p>Chào ${user.lastName || 'bạn'},</p>
+           <p>Mật khẩu mới của bạn là: <b>${newPassword}</b></p>
+           <p>Hãy đăng nhập và thay đổi mật khẩu để bảo mật thông tin.</p>
+           <p>Trân trọng,</p>
+           <p><b>Đội ngũ hỗ trợ CLB</b></p>`,
+  });
+
+  return { message: 'Mật khẩu mới đã được gửi qua email của bạn' };
+}
+
+
+
 
   // @Public()
   // @Get('getMail')

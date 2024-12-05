@@ -19,12 +19,15 @@ import { IUserService } from './user.interface.service';
 import { instanceToPlain } from 'class-transformer';
 import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
 import passwordHelper from 'utils/helpers/password-helper';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UserService implements IUserService {
+  private otpStore: Record<string, { otp: string; expiresAt: Date }> = {};
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private readonly mailerService: MailerService,
 
     @InjectRepository(AccessGrant)
     private accessGrantRepository: Repository<AccessGrant>,
@@ -361,6 +364,42 @@ export class UserService implements IUserService {
     // Lưu thông tin user đã cập nhật
     return await this.userRepository.save(user);
   }
+
+ // get user by email
+  async getUserByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({
+      where: {
+        email: email,
+      },
+    });
+  }
+  // reset password, truyền email với password mới
+  async resetPassword(email: string, newPassword: string): Promise<User> {
+    // Tìm user theo email
+    const user = await this.userRepository.findOne({
+      where: { email: email },
+    });
+  
+    // Nếu không tìm thấy user, ném lỗi NotFoundException
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+  
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await passwordHelper.hashPassword(newPassword);
+  
+    // Cập nhật mật khẩu đã mã hóa
+    user.hashedPassword = hashedPassword;
+  
+    // Lưu thông tin user đã cập nhật
+    return await this.userRepository.save(user);
+  }
+
+ 
+  
+
+
+
  
 
 }
