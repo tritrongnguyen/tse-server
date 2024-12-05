@@ -7,6 +7,7 @@ import { Group } from './group.entity';
 import { MemberGroup } from './member-group.entity';
 import { QnACategory } from './qna-category.entity';
 import { QnaTag } from './qna-tag.entity';
+import { QuestionCategory } from './question-category';
 import { QuestionTag } from './question-tag.entity';
 import { Question } from './question.entity';
 import { Role } from './role.entity';
@@ -30,4 +31,5 @@ export const appEntities = [
   Vote,
   QnaTag,
   QuestionTag,
+  QuestionCategory,
 ];

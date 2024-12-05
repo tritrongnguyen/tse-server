@@ -5,6 +5,7 @@ import { UserStatus, UserType } from './enums/user.enum';
 import { AccessGrant } from './access-grant.entity';
 import { MemberGroup } from './member-group.entity';
 import { UserActivity } from './user-activity.entity';
+import { Question } from './question.entity';
 @Entity({
   name: 'users',
 })
@@ -113,6 +114,11 @@ export class User {
     lazy: true,
   })
   userActivities: Promise<UserActivity[]>;
+
+  @OneToMany(() => Question, (question) => question.user, {
+    lazy: true,
+  })
+  questions: Promise<Question[]>;
 
   constructor(
     userId?: string,

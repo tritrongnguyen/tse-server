@@ -3,4 +3,5 @@ export class CreateQuestionRequest {
   body?: string;
   userId?: number;
   categoryId?: number;
+  tags?: string[];
 }

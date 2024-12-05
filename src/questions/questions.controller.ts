@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   HttpStatus,
   Inject,
   Post,
@@ -29,6 +30,7 @@ export class QuestionsController {
   ) {}
 
   @Post('/list')
+  @HttpCode(HttpStatus.OK)
   async getSearchQuestionsPaginated(
     @Query() query: PaginatedQuery<Question>,
     @Body() searchQuestionsRequest: SearchQuestionRequest,

@@ -5,7 +5,7 @@ export enum Routes {
   ACTIVITY = '/activities',
   POINT = '/points',
   ATTENDANCE = '/attendances',
-  QUESTION = '/questions',
+  QUESTION = '/forum/questions',
 }
 
 export enum Services {

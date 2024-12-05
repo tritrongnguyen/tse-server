@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseEntity } from './base.entity';
+import { QuestionCategory } from './question-category';
 
 @Entity({
   name: 'qna_categories',
@@ -20,6 +21,12 @@ export class QnACategory extends BaseEntity {
     nullable: true,
   })
   description: string;
+
+  @ManyToOne(
+    () => QuestionCategory,
+    (questionCategory) => questionCategory.category,
+  )
+  questionCategories: QuestionCategory[];
 
   constructor(name: string, description: string) {
     super();
