@@ -1,3 +1,4 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import {
   Body,
   Controller,
@@ -13,7 +14,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { instanceToPlain } from 'class-transformer';
-import { Public, RequiredRoles } from 'src/auth/customs';
+import * as crypto from 'crypto';
+import { Public } from 'src/auth/customs';
 import { AuthenticationGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import {
@@ -23,27 +25,22 @@ import {
 } from 'src/dtos/common.dto';
 import { ApproveLeftRequest } from 'src/dtos/users/requests/approve-left-request.dto';
 import { GetUserInfoByIdRequest } from 'src/dtos/users/requests/get-user-info-by-id-request.dto';
-import { GetLeftRequestsResponse } from 'src/dtos/users/response/get-left-requests-response.dto';
-import GetRegisterUsersResponse from 'src/dtos/users/response/get-register-users-response.dto';
 import { GetUserInfoByIdResponse } from 'src/dtos/users/response/get-user-info-by-id-response.dto';
 import { User } from 'src/entities/user.entity';
 import { Routes, Services, SortDirections } from 'utils/constants';
 import { HttpExceptionFilter } from 'utils/http-exception-filter';
-import { Roles } from 'utils/security-constants';
+import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
 import { EntityPropertyErrorFilter } from './filters/entity-property-error-filter.filter';
 import { IUserService } from './user.interface.service';
-import { ActivateUserRequest } from '../dtos/users/requests/approve-register-request.dto';
-import { MailerService } from '@nestjs-modules/mailer';
-import * as crypto from 'crypto';
 
 @Controller(Routes.USERS)
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
 @UseFilters(HttpExceptionFilter)
 export class UserController {
-  constructor(@Inject(Services.USER) private userService: IUserService,
-  private readonly mailerService: MailerService,
-  
-) {}
+  constructor(
+    @Inject(Services.USER) private userService: IUserService,
+    private readonly mailerService: MailerService,
+  ) {}
 
   @Public()
   @Get('')
@@ -149,12 +146,11 @@ export class UserController {
   ): Promise<ApiResponse<boolean>> {
     const { userIds } = activateUserRequest;
     const result = await this.userService.activateUser(activateUserRequest);
-   
+
     if (result) {
-     // gửi mail thông báo kích hoạt thành công
+      // gửi mail thông báo kích hoạt thành công
       const users = await this.userService.getUserById(userIds[0]);
-      this.mailerService
-      .sendMail({
+      this.mailerService.sendMail({
         to: users.email, // list of receivers
         subject: 'Thông báo từ TSE CLUB', // Subject line
         text: 'welcome', // plaintext body
@@ -165,7 +161,7 @@ export class UserController {
                 <p>Trân trọng,</p>
                 <p><b>Đội ngũ hỗ trợ CLB</b></p>
         `, // Nội dung email
-      })
+      });
       return new ApiResponse(HttpStatus.OK, 'Kích hoạt thành công');
     } else {
       throw new InternalServerErrorException('Kích hoạt thất bại');
@@ -175,22 +171,25 @@ export class UserController {
   @Public()
   @Post('deny-register')
   @HttpCode(HttpStatus.OK)
-  async denyRegisterRequest(@Body() body: { userIds: string[] }): Promise<ApiResponse<boolean>> {
+  async denyRegisterRequest(
+    @Body() body: { userIds: string[] },
+  ): Promise<ApiResponse<boolean>> {
     const { userIds } = body;
-  
+
     // Kiểm tra đầu vào: userIds phải là mảng và không được rỗng
     if (!Array.isArray(userIds) || userIds.length === 0) {
-      throw new InternalServerErrorException('Dữ liệu userIds không hợp lệ hoặc rỗng');
+      throw new InternalServerErrorException(
+        'Dữ liệu userIds không hợp lệ hoặc rỗng',
+      );
     }
     // tìm user trong db để láy gmail để gửi mail
     const users = await this.userService.getUserById(userIds[0]);
     // Gọi service để thực hiện logic từ chối
     const result = await this.userService.rejectUserRegistration(userIds);
     console.log(users.email);
-  
+
     if (result) {
-      this.mailerService
-      .sendMail({
+      this.mailerService.sendMail({
         // to: 'viet1282002@gmail.com', // list of receivers
         to: users.email, // list of receivers
         subject: 'Thông báo từ TSE CLUB', // Subject line
@@ -201,7 +200,7 @@ export class UserController {
                 <p>Trân trọng,</p>
                 <p><b>Đội ngũ hỗ trợ CLB</b></p>
         `, // Nội dung email
-      })
+      });
       return new ApiResponse(HttpStatus.OK, 'Từ chối đăng ký thành công', true);
     } else {
       throw new InternalServerErrorException('Từ chối đăng ký thất bại');
@@ -213,9 +212,10 @@ export class UserController {
   async approveLeftRequest(@Body() approveLeftRequestDto: ApproveLeftRequest) {
     await this.userService.approveLeftRequest(approveLeftRequestDto);
     // gửi mail thông báo chấp nhận yêu cầu rời khỏi clb
-    const users = await this.userService.getUserById(approveLeftRequestDto.userIds[0]);
-    this.mailerService
-    .sendMail({
+    const users = await this.userService.getUserById(
+      approveLeftRequestDto.userIds[0],
+    );
+    this.mailerService.sendMail({
       to: users.email, // list of receivers
       subject: 'Thông báo từ TSE CLUB', // Subject line
       text: 'welcome', // plaintext body
@@ -228,20 +228,17 @@ export class UserController {
               <p>Trân trọng,</p>
               <p><b>Đội ngũ hỗ trợ CLB</b></p>
       `, // Nội dung email
-    })
-
-
-              }
+    });
+  }
 
   @Public()
   @Post('left-request/reject')
   @HttpCode(HttpStatus.OK)
   async rejectLeftRequestingUsers(@Body() body: { userIds: string[] }) {
-   await this.userService.rejectLeftRequestingUsers(body.userIds);
-   // gửi mail thông báo từ chối yêu cầu rời khỏi clb
+    await this.userService.rejectLeftRequestingUsers(body.userIds);
+    // gửi mail thông báo từ chối yêu cầu rời khỏi clb
     const users = await this.userService.getUserById(body.userIds[0]);
-    this.mailerService
-    .sendMail({
+    this.mailerService.sendMail({
       to: users.email, // list of receivers
       subject: 'Thông báo từ TSE CLB', // Subject line
       text: 'welcome', // plaintext body
@@ -252,9 +249,9 @@ export class UserController {
               <p>Trân trọng,</p>
               <p><b>Đội ngũ hỗ trợ CLB</b></p>
       `, // Nội dung email
-    })
+    });
   }
-// yêu cầu rời khỏi clb
+  // yêu cầu rời khỏi clb
   @Public()
   @Post(':userId/request-left')
   @HttpCode(HttpStatus.OK)
@@ -281,45 +278,49 @@ export class UserController {
   @Public()
   @Post('updatePassword')
   @HttpCode(HttpStatus.OK)
-  async updatePassword(@Body() body: { userId: string; oldPassword: string; newPassword: string }) {
-    await this.userService.updatePassword(body.userId, body.oldPassword, body.newPassword);
+  async updatePassword(
+    @Body() body: { userId: string; oldPassword: string; newPassword: string },
+  ) {
+    await this.userService.updatePassword(
+      body.userId,
+      body.oldPassword,
+      body.newPassword,
+    );
   }
 
-  
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(
+    @Body('email') email: string,
+  ): Promise<{ message: string }> {
+    // Kiểm tra xem email có tồn tại trong hệ thống không
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) {
+      throw new InternalServerErrorException(
+        'Email không tồn tại trong hệ thống',
+      );
+    }
 
-@Public()
-@Post('forgot-password')
-@HttpCode(HttpStatus.OK)
-async forgotPassword(@Body('email') email: string): Promise<{ message: string }> {
-  // Kiểm tra xem email có tồn tại trong hệ thống không
-  const user = await this.userService.getUserByEmail(email);
-  if (!user) {
-    throw new InternalServerErrorException('Email không tồn tại trong hệ thống');
-  }
+    // Tạo mật khẩu mới ngẫu nhiên (6 ký tự)
+    const newPassword = crypto.randomBytes(3).toString('hex'); // 6 ký tự ngẫu nhiên
+    console.log(user.hashedPassword);
+    // Cập nhật mật khẩu mới trong cơ sở dữ liệu
+    await this.userService.resetPassword(user.email, newPassword);
 
-  // Tạo mật khẩu mới ngẫu nhiên (6 ký tự)
-  const newPassword = crypto.randomBytes(3).toString('hex'); // 6 ký tự ngẫu nhiên
-  console.log(user.hashedPassword);
-  // Cập nhật mật khẩu mới trong cơ sở dữ liệu
-  await this.userService.resetPassword(user.email, newPassword);
- 
-
-  // Gửi email chứa mật khẩu mới
-  await this.mailerService.sendMail({
-    to: email, // Người nhận
-    subject: 'Khôi phục mật khẩu - TSE CLUB', // Tiêu đề
-    html: `<p>Chào ${user.lastName || 'bạn'},</p>
+    // Gửi email chứa mật khẩu mới
+    await this.mailerService.sendMail({
+      to: email, // Người nhận
+      subject: 'Khôi phục mật khẩu - TSE CLUB', // Tiêu đề
+      html: `<p>Chào ${user.lastName || 'bạn'},</p>
            <p>Mật khẩu mới của bạn là: <b>${newPassword}</b></p>
            <p>Hãy đăng nhập và thay đổi mật khẩu để bảo mật thông tin.</p>
            <p>Trân trọng,</p>
            <p><b>Đội ngũ hỗ trợ CLB</b></p>`,
-  });
+    });
 
-  return { message: 'Mật khẩu mới đã được gửi qua email của bạn' };
-}
-
-
-
+    return { message: 'Mật khẩu mới đã được gửi qua email của bạn' };
+  }
 
   // @Public()
   // @Get('getMail')
@@ -333,8 +334,4 @@ async forgotPassword(@Body('email') email: string): Promise<{ message: string }>
   //     html: '<b>welcome</b>', // HTML body content
   //   })
   // }
-
-
-
-
 }

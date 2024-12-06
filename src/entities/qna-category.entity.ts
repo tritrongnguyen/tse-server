@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { QuestionCategory } from './question-category';
 
@@ -22,7 +28,7 @@ export class QnACategory extends BaseEntity {
   })
   description: string;
 
-  @ManyToOne(
+  @OneToMany(
     () => QuestionCategory,
     (questionCategory) => questionCategory.category,
   )

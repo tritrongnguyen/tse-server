@@ -19,7 +19,7 @@ import {
 import { SearchQuestionRequest } from '../dtos/request/search-question.request';
 import { QuestionDTO } from '../dtos/question.dto';
 import { Question } from '../entities/question.entity';
-import { CreateQuestionRequest } from '../dtos/request/create-question.request';
+import { QuestionCURequest } from '../dtos/request/question-cu.request';
 
 @Controller(Routes.QUESTION)
 @UseFilters(HttpExceptionFilter)
@@ -48,8 +48,15 @@ export class QuestionsController {
 
   @Post('')
   async createQuestion(
-    @Body() createQuestionRequest: CreateQuestionRequest,
+    @Body() createQuestionRequest: QuestionCURequest,
   ): Promise<ApiResponse<QuestionDTO>> {
-    return;
+    const dto = await this.questionService.createQuestion(
+      createQuestionRequest,
+    );
+    return new ApiResponse<QuestionDTO>(
+      HttpStatus.CREATED,
+      'Tạo câu hỏi thành công',
+      dto,
+    );
   }
 }

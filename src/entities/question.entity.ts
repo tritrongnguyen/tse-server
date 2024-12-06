@@ -3,6 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
@@ -17,33 +18,30 @@ export class Question extends BaseEntity {
   @PrimaryGeneratedColumn('increment', {
     type: 'bigint',
   })
-  id: number;
+  id?: number;
 
   @Column('nvarchar', {
     length: 255,
     nullable: false,
   })
-  title: string;
+  title?: string;
 
   @Column('text', {
     nullable: false,
   })
-  body: string;
+  body?: string;
 
   @ManyToOne(() => User, (user) => user.questions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user?: User;
 
-  @ManyToOne(
+  @OneToMany(
     () => QuestionCategory,
     (questionCategory) => questionCategory.question,
-    {
-      onDelete: 'CASCADE',
-    },
   )
-  questionCategories: QuestionCategory[];
+  questionCategories?: QuestionCategory[];
 
-  constructor(title: string, body: string) {
+  constructor(title?: string, body?: string) {
     super();
     this.title = title;
     this.body = body;

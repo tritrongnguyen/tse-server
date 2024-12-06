@@ -6,13 +6,22 @@ import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
 import { Question } from '../entities/question.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { plainToInstance } from 'class-transformer';
+import {
+  classToPlain,
+  instanceToPlain,
+  plainToInstance,
+} from 'class-transformer';
+import { QuestionCURequest } from '../dtos/request/question-cu.request';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class QuestionsService implements IQuestionService {
   constructor(
     @InjectRepository(Question)
     private questionRepository: Repository<Question>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   async searchQuestionPaginated(
@@ -58,6 +67,32 @@ export class QuestionsService implements IQuestionService {
       return new PaginatedResponse<QuestionDTO>(pageable, count, []);
     else {
       return new PaginatedResponse<QuestionDTO>(pageable, count, dtoData);
+    }
+  }
+
+  async createQuestion(createRequest: QuestionCURequest): Promise<QuestionDTO> {
+    const question = new Question();
+    const userQueryBuilder = this.userRepository.createQueryBuilder('user');
+    if (createRequest.isUpdate) {
+      question.title = createRequest.title;
+      question.body = createRequest.body;
+    } else {
+      // check if the user is valid
+      const userExist = await userQueryBuilder
+        .where('user.user_id = :userId', {
+          userId: createRequest.userId,
+        })
+        .getOne();
+      console.log({ userExist });
+      if (!userExist) {
+        throw new Error('Người dùng không tồn tại');
+      }
+      question.title = createRequest.title;
+      question.body = createRequest.body;
+      question.user = instanceToPlain(userExist) as User;
+      question.createdBy = [userExist.firstName, userExist.lastName].join(' ');
+      question.updatedBy = [userExist.firstName, userExist.lastName].join(' ');
+      return this.questionRepository.save(question);
     }
   }
 }

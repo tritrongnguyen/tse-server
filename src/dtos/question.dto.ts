@@ -30,11 +30,11 @@ export class QuestionDTO {
 
   @Expose()
   @Type(() => QuestionTag)
-  questionTags: Partial<QuestionTag>[];
+  questionTags?: Partial<QuestionTag>[];
 
   @Expose()
   @Type(() => Comment)
-  comments: Partial<Comment>[];
+  comments?: Partial<Comment>[];
 
   @Expose()
   @Type(() => Vote)
