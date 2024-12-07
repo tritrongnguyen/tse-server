@@ -53,13 +53,9 @@ export class QuestionsService implements IQuestionService {
       .take(size)
       .getManyAndCount();
 
-    console.log({ data });
-
     const dtoData = plainToInstance(QuestionDTO, data, {
       excludeExtraneousValues: true,
     });
-
-    console.log({ dtoData });
 
     const pageable = Math.ceil(count / size);
 
@@ -83,7 +79,6 @@ export class QuestionsService implements IQuestionService {
           userId: createRequest.userId,
         })
         .getOne();
-      console.log({ userExist });
       if (!userExist) {
         throw new Error('Người dùng không tồn tại');
       }

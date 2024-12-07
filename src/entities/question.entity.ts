@@ -7,9 +7,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { User } from './user.entity';
-import { QnACategory } from './qna-category.entity';
 import { QuestionCategory } from './question-category';
+import { User } from './user.entity';
 
 @Entity({
   name: 'questions',
