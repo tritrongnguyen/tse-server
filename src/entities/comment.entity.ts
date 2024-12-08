@@ -42,16 +42,6 @@ export class Comment extends BaseEntity {
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => Comment, (comment) => comment.children, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'parent_id' })
-  parent: Comment | null;
-
-  @OneToMany(() => Comment, (comment) => comment.parent)
-  children: Comment[];
-
   @OneToMany(() => CommentVote, (commentVote) => commentVote.comment)
   commentVotes?: CommentVote[];
 

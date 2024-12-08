@@ -76,6 +76,7 @@ export class Question extends BaseEntity {
 
   @OneToMany(() => QuestionVote, (questionVote) => questionVote.question)
   questionVotes?: QuestionVote[];
+
   constructor(title?: string, body?: string) {
     super();
     this.title = title;

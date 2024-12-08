@@ -63,7 +63,7 @@ export class QuestionDTO {
 
   @Expose()
   @Type(() => Vote)
-  votes?: Partial<Vote>[];
+  questionVotes?: Partial<Vote>[];
 
   constructor(
     id?: number,
@@ -74,7 +74,7 @@ export class QuestionDTO {
     // answer?: Partial<Answer>,
     questionTags?: Partial<QuestionTag>[],
     comments?: Partial<Comment>[],
-    votes?: Partial<Vote>[],
+    questionVotes?: Partial<Vote>[],
   ) {
     this.id = id;
     this.title = title;
@@ -84,6 +84,6 @@ export class QuestionDTO {
     // this.answer = answer;
     this.questionTags = questionTags;
     this.comments = comments;
-    this.votes = votes;
+    this.questionVotes = questionVotes;
   }
 }

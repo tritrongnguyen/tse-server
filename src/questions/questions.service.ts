@@ -9,6 +9,8 @@ import { SearchQuestionRequest } from '../dtos/request/search-question.request';
 import { Question } from '../entities/question.entity';
 import { User } from '../entities/user.entity';
 import { IQuestionService } from './question.interface.service';
+import { CommentDTO } from '../dtos/comment.dto';
+import { Comment } from '../entities/comment.entity';
 
 @Injectable()
 export class QuestionsService implements IQuestionService {
@@ -18,7 +20,23 @@ export class QuestionsService implements IQuestionService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
   ) {}
+
+  async getQuestionById(qId: number): Promise<QuestionDTO> {
+    const result = await this.questionRepository.findOne({
+      where: {
+        id: qId,
+      },
+      relations: ['user', 'questionVotes'],
+    });
+
+    return plainToInstance(QuestionDTO, result, {
+      excludeExtraneousValues: true,
+    });
+  }
 
   getPinQuestions(): Promise<QuestionDTO[]> {
     return this.questionRepository.find({
@@ -88,6 +106,45 @@ export class QuestionsService implements IQuestionService {
       question.createdBy = [userExist.firstName, userExist.lastName].join(' ');
       question.updatedBy = [userExist.firstName, userExist.lastName].join(' ');
       return this.questionRepository.save(question);
+    }
+  }
+
+  async getListQuestionComment(
+    questionId?: number,
+    query?: PaginatedQuery<Comment>,
+    searchRequest?: SearchQuestionRequest,
+  ): Promise<PaginatedResponse<CommentDTO>> {
+    const { page = 1, size = 10 } = query;
+
+    const startIndex = (page - 1) * size;
+
+    const queryBuilder = this.commentRepository.createQueryBuilder('comment');
+    queryBuilder.leftJoinAndSelect('comment.user', 'user');
+    queryBuilder.where('comment.isDeleted = :isDeleted', { isDeleted: false });
+    queryBuilder.andWhere('comment.question_id = :questionId', { questionId });
+    queryBuilder.orderBy('comment.createdAt', 'ASC');
+
+    if (searchRequest.searchText) {
+      queryBuilder.andWhere('comment.body LIKE :searchText', {
+        searchText: `%${searchRequest.searchText}%`,
+      });
+    }
+
+    const [data, count] = await queryBuilder
+      .skip(startIndex)
+      .take(size)
+      .getManyAndCount();
+
+    const dtoData = plainToInstance(CommentDTO, data, {
+      excludeExtraneousValues: true,
+    });
+
+    const pageable = Math.ceil(count / size);
+
+    if (count < startIndex)
+      return new PaginatedResponse<CommentDTO>(pageable, count, []);
+    else {
+      return new PaginatedResponse<CommentDTO>(pageable, count, dtoData);
     }
   }
 }

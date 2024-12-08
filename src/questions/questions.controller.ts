@@ -5,6 +5,8 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   UseFilters,
@@ -25,6 +27,8 @@ import { QuestionCURequest } from '../dtos/request/question-cu.request';
 import { Public } from '../auth/customs';
 import { AuthenticationGuard } from '../auth/guards/authentication.guard';
 import { AuthorizationGuard } from '../auth/guards/authorization.guard';
+import { CommentDTO } from '../dtos/comment.dto';
+import { Comment } from '../entities/comment.entity';
 
 @Controller(Routes.QUESTION)
 @UseFilters(HttpExceptionFilter)
@@ -34,6 +38,34 @@ export class QuestionsController {
     @Inject(Services.QUESTION)
     private questionService: IQuestionService,
   ) {}
+
+  @Public()
+  @Post('/:id/comments')
+  async getQuestionComments(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() paginationQuery: PaginatedQuery<Comment>,
+    @Body() getCommentsRequest: SearchQuestionRequest,
+  ): Promise<ApiResponse<PaginatedResponse<CommentDTO>>> {
+    const page = await this.questionService.getListQuestionComment(
+      id,
+      paginationQuery,
+      getCommentsRequest,
+    );
+    return new ApiResponse(
+      HttpStatus.OK,
+      'Lấy danh sách comment thành công',
+      page,
+    );
+  }
+
+  @Public()
+  @Get('/details/:id')
+  async getQuestionById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ApiResponse<QuestionDTO>> {
+    const question = await this.questionService.getQuestionById(id);
+    return new ApiResponse(HttpStatus.OK, 'Lấy câu hỏi thành công', question);
+  }
 
   @Public()
   @Get('/pin')
