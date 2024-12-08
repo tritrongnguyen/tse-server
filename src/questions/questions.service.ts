@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { IQuestionService } from './question.interface.service';
-import { SearchQuestionRequest } from '../dtos/request/search-question.request';
-import { QuestionDTO } from '../dtos/question.dto';
-import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
-import { Question } from '../entities/question.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
-import {
-  classToPlain,
-  instanceToPlain,
-  plainToInstance,
-} from 'class-transformer';
+import { PaginatedQuery, PaginatedResponse } from '../dtos/common.dto';
+import { QuestionDTO } from '../dtos/question.dto';
 import { QuestionCURequest } from '../dtos/request/question-cu.request';
+import { SearchQuestionRequest } from '../dtos/request/search-question.request';
+import { Question } from '../entities/question.entity';
 import { User } from '../entities/user.entity';
+import { IQuestionService } from './question.interface.service';
 
 @Injectable()
 export class QuestionsService implements IQuestionService {
@@ -24,6 +20,14 @@ export class QuestionsService implements IQuestionService {
     private userRepository: Repository<User>,
   ) {}
 
+  getPinQuestions(): Promise<QuestionDTO[]> {
+    return this.questionRepository.find({
+      where: {
+        isPin: true,
+      },
+    });
+  }
+
   async searchQuestionPaginated(
     query: PaginatedQuery<Question>,
     searchRequest: SearchQuestionRequest,
@@ -33,15 +37,11 @@ export class QuestionsService implements IQuestionService {
     const startIndex = (page - 1) * size;
 
     const queryBuilder = this.questionRepository.createQueryBuilder('question');
-    // queryBuilder
-    //   .leftJoinAndSelect('question.user', 'user')
-    //   .leftJoinAndSelect('question.category', 'category');
-    // .leftJoinAndSelect('question.answer', 'answer')
-    // .leftJoinAndSelect('question.questionTags', 'questionTags')
-    // .leftJoinAndSelect('question.comments', 'comments')
-    // .leftJoinAndSelect('question.votes', 'votes');
-
+    queryBuilder.leftJoinAndSelect('question.user', 'user');
     queryBuilder.where('question.isDeleted = :isDeleted', { isDeleted: false });
+    queryBuilder.andWhere('question.is_pin = :isPin', { isPin: false });
+    queryBuilder.orderBy('question.updatedAt', 'DESC');
+
     if (searchRequest.searchText) {
       queryBuilder.andWhere('question.title LIKE :searchText', {
         searchText: `%${searchRequest.searchText}%`,

@@ -3,12 +3,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
 import { Question } from './question.entity';
-import { Answer } from './answer.entity';
+import { CommentVote } from './comment-vote.entity';
 
 @Entity({
   name: 'comments',
@@ -17,12 +18,18 @@ export class Comment extends BaseEntity {
   @PrimaryGeneratedColumn('increment', {
     type: 'bigint',
   })
-  id: number;
+  id?: number;
 
   @Column('text', {
     nullable: false,
   })
-  body: string;
+  body?: string;
+
+  @Column('boolean', {
+    nullable: false,
+    default: false,
+  })
+  isAnswer?: boolean;
 
   @ManyToOne(() => User, (user) => user.userId, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
@@ -35,15 +42,23 @@ export class Comment extends BaseEntity {
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => Answer, (answer) => answer.id, {
+  @ManyToOne(() => Comment, (comment) => comment.children, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'answer_id' })
-  answer: Answer;
+  @JoinColumn({ name: 'parent_id' })
+  parent: Comment | null;
 
-  constructor(body: string) {
+  @OneToMany(() => Comment, (comment) => comment.parent)
+  children: Comment[];
+
+  @OneToMany(() => CommentVote, (commentVote) => commentVote.comment)
+  commentVotes?: CommentVote[];
+
+  constructor(id?: number, body?: string, isAnswer?: boolean) {
     super();
+    this.id = id;
     this.body = body;
+    this.isAnswer = isAnswer;
   }
 }

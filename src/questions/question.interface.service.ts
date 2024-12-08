@@ -5,6 +5,8 @@ import { SearchQuestionRequest } from '../dtos/request/search-question.request';
 import { Question } from '../entities/question.entity';
 
 export interface IQuestionService {
+  getPinQuestions(): Promise<QuestionDTO[]>;
+
   searchQuestionPaginated(
     query: PaginatedQuery<Question>,
     searchRequest: SearchQuestionRequest,

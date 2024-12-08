@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { Faculty } from './enums/faculty.enum';
-import { Exclude } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { UserStatus, UserType } from './enums/user.enum';
 import { AccessGrant } from './access-grant.entity';
 import { MemberGroup } from './member-group.entity';
@@ -15,6 +15,7 @@ export class User {
     name: 'user_id',
     length: 10,
   })
+  @Expose()
   public userId: string;
 
   @Column('varchar', {
@@ -37,6 +38,7 @@ export class User {
     nullable: false,
     unique: true,
   })
+  @Expose()
   public email: string;
 
   @Column('varchar', {
@@ -45,6 +47,7 @@ export class User {
     unique: true,
     nullable: true,
   })
+  @Expose()
   public phoneNumber: string;
 
   @Column('nvarchar', {
@@ -52,6 +55,7 @@ export class User {
     length: 40,
     nullable: false,
   })
+  @Expose()
   public firstName: string;
 
   @Column('nvarchar', {
@@ -59,6 +63,7 @@ export class User {
     length: 40,
     nullable: false,
   })
+  @Expose()
   public lastName: string;
 
   @Column('enum', {
@@ -68,6 +73,7 @@ export class User {
     nullable: false,
     default: UserType.STUDENT,
   })
+  @Expose()
   public userType: UserType;
 
   @Column('enum', {
@@ -76,6 +82,7 @@ export class User {
     enumName: 'faculties',
     default: Faculty.OTHER,
   })
+  @Expose()
   public faculty: Faculty;
 
   @Column('nvarchar', {
@@ -83,6 +90,7 @@ export class User {
     name: 'class_name',
     nullable: true,
   })
+  @Expose()
   public className: string;
 
   @Column('int', {
@@ -90,6 +98,7 @@ export class User {
     nullable: false,
     default: 0,
   })
+  @Expose()
   public cumulativeScore: number;
 
   @Column('enum', {
@@ -98,6 +107,7 @@ export class User {
     nullable: false,
     default: UserStatus.ACTIVE,
   })
+  @Expose()
   public status: UserStatus;
 
   @OneToMany(() => AccessGrant, (accessGrant) => accessGrant.user, {

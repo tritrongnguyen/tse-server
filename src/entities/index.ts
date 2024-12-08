@@ -1,7 +1,7 @@
 import { AccessGrant } from './access-grant.entity';
 import { Activity } from './activity.entity';
-import { Answer } from './answer.entity';
 import { Attendance } from './attendance.entity';
+import { CommentVote } from './comment-vote.entity';
 import { Comment } from './comment.entity';
 import { Group } from './group.entity';
 import { MemberGroup } from './member-group.entity';
@@ -9,6 +9,7 @@ import { QnACategory } from './qna-category.entity';
 import { QnaTag } from './qna-tag.entity';
 import { QuestionCategory } from './question-category';
 import { QuestionTag } from './question-tag.entity';
+import { QuestionVote } from './question-vote.entity';
 import { Question } from './question.entity';
 import { Role } from './role.entity';
 import { UserActivity } from './user-activity.entity';
@@ -26,10 +27,11 @@ export const appEntities = [
   UserActivity,
   QnACategory,
   Question,
-  Answer,
   Comment,
   Vote,
   QnaTag,
   QuestionTag,
   QuestionCategory,
+  QuestionVote,
+  CommentVote,
 ];

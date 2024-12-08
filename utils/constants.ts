@@ -6,6 +6,11 @@ export enum Routes {
   POINT = '/points',
   ATTENDANCE = '/attendances',
   QUESTION = '/forum/questions',
+  VOTE = '/forum/votes',
+  COMMENT = '/forum/comments',
+  TAG = '/forum/tags',
+  CATEGORY = '/forum/categories',
+  ANSWER = '/forum/answers',
 }
 
 export enum Services {
@@ -16,6 +21,10 @@ export enum Services {
   POINT = 'POINT_SERVICE',
   ATTENDANCE = 'ATTENDANCE_SERVICE',
   QUESTION = 'QUESTION_SERVICE',
+  VOTE = 'VOTE_SERVICE',
+  COMMENT = 'COMMENT_SERVICE',
+  TAG = 'TAG_SERVICE',
+  CATEGORY = 'CATEGORY_SERVICE',
 }
 
 export enum SortDirections {

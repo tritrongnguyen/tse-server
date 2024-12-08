@@ -1,10 +1,14 @@
 import { Expose, Type } from 'class-transformer';
-import { Answer } from '../entities/answer.entity';
 import { Comment } from '../entities/comment.entity';
 import { QnACategory } from '../entities/qna-category.entity';
 import { QuestionTag } from '../entities/question-tag.entity';
 import { User } from '../entities/user.entity';
 import { Vote } from '../entities/vote.entity';
+import {
+  QuestionStatus,
+  QuestionTrend,
+  QuestionType,
+} from '../entities/enums/question.enum';
 
 export class QuestionDTO {
   @Expose()
@@ -17,6 +21,27 @@ export class QuestionDTO {
   body?: string;
 
   @Expose()
+  isPin?: boolean;
+
+  @Expose()
+  trend?: QuestionTrend;
+
+  @Expose()
+  status?: QuestionStatus;
+
+  @Expose()
+  type?: QuestionType;
+
+  @Expose()
+  createdAt?: Date;
+
+  @Expose()
+  updatedAt?: Date;
+
+  @Expose()
+  isDeleted?: boolean;
+
+  @Expose()
   @Type(() => User)
   user?: Partial<User>;
 
@@ -24,9 +49,9 @@ export class QuestionDTO {
   @Type(() => QnACategory)
   category?: Partial<QnACategory>;
 
-  @Expose()
-  @Type(() => Answer)
-  answer?: Partial<Answer>;
+  // @Expose()
+  // @Type(() => Answer)
+  // answer?: Partial<Answer>;
 
   @Expose()
   @Type(() => QuestionTag)
@@ -46,7 +71,7 @@ export class QuestionDTO {
     body?: string,
     user?: Partial<User>,
     category?: Partial<QnACategory>,
-    answer?: Partial<Answer>,
+    // answer?: Partial<Answer>,
     questionTags?: Partial<QuestionTag>[],
     comments?: Partial<Comment>[],
     votes?: Partial<Vote>[],
@@ -56,7 +81,7 @@ export class QuestionDTO {
     this.body = body;
     this.user = user;
     this.category = category;
-    this.answer = answer;
+    // this.answer = answer;
     this.questionTags = questionTags;
     this.comments = comments;
     this.votes = votes;
